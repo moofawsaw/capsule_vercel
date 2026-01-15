@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.capsule.app",
+      "sha256_cert_fingerprints": [
+        "FC:36:9C:D3:8D:25:4E:84:0C:C6:A5:A5:9A:37:E5:7C:1D:35:F1:DC:71:9C:AD:2E:6D:B6:B4:FE:85:F0:B6:F1"
+      ]
+    }
+  }
+]
