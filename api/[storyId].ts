@@ -1,5 +1,15 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
+// Add this helper function
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   
@@ -8,7 +18,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Fetch story data from Supabase edge function
     const response = await fetch(
       `https://resdvutqgrbbylknaxjp.supabase.co/functions/v1/story-meta?storyId=${storyId}&format=json`
     );
@@ -16,24 +25,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let title = "View Story on Capsule";
     let description = "Open in Capsule to view this story";
     let imageUrl = "https://capapp.co/og-default.png";
-    let isVideo = false;
     let videoUrl: string | null = null;
+    let isVideo = false;
     let videoDuration: number | null = null;
     const pageUrl = `https://capapp.co/story/${storyId}`;
     
     if (response.ok) {
       const data = await response.json();
-      if (data.title) title = data.title;
-      if (data.description) description = data.description;
+      if (data.title) title = escapeHtml(data.title);
+      if (data.description) description = escapeHtml(data.description);
       if (data.imageUrl) imageUrl = data.imageUrl;
       if (data.isVideo) isVideo = data.isVideo;
       if (data.videoUrl) videoUrl = data.videoUrl;
       if (data.videoDuration) videoDuration = data.videoDuration;
     }
 
-    // Build video meta tags if this is a video story
+    // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
-  <!-- Video OG Meta Tags -->
   <meta property="og:type" content="video.other">
   <meta property="og:video" content="${videoUrl}">
   <meta property="og:video:secure_url" content="${videoUrl}">
@@ -43,19 +51,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ${videoDuration ? `<meta property="og:video:duration" content="${videoDuration}">` : ''}` : `
   <meta property="og:type" content="website">`;
 
-    // Build Twitter card tags - use player card for videos
     const twitterCardTags = isVideo && videoUrl ? `
   <meta name="twitter:card" content="player">
-  <meta name="twitter:title" content="${title}">
-  <meta name="twitter:description" content="${description}">
-  <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:player" content="${videoUrl}">
   <meta name="twitter:player:width" content="720">
   <meta name="twitter:player:height" content="1280">` : `
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${title}">
-  <meta name="twitter:description" content="${description}">
-  <meta name="twitter:image" content="${imageUrl}">`;
+  <meta name="twitter:card" content="summary_large_image">`;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -69,11 +70,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:url" content="${pageUrl}">
-  <meta property="og:site_name" content="Capsule">
   ${videoMetaTags}
+  <meta property="og:site_name" content="Capsule">
   
   <!-- Twitter Card Meta Tags -->
   ${twitterCardTags}
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${imageUrl}">
   
   <!-- App Deep Link Meta Tags -->
   <meta property="al:ios:app_store_id" content="6630382437">
@@ -113,19 +117,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       display: inline-block;
     }
   </style>
+  
+  <script>
+    const deepLink = "capsule://story/${storyId}";
+    const fallbackUrl = "https://capsuleapp.lovable.app/story/${storyId}";
+    
+    window.onload = function() {
+      window.location.href = deepLink;
+      setTimeout(() => { window.location.href = fallbackUrl; }, 1500);
+    };
+  </script>
 </head>
 <body>
   <div class="container">
     <div class="spinner"></div>
     <p>Opening in Capsule...</p>
-    <a href="https://capsulememories.app/story/${storyId}">Open in browser</a>
+    <a href="https://capsuleapp.lovable.app/story/${storyId}">Open in browser</a>
   </div>
-  <script>
-    window.location.href = "capsule://story/${storyId}";
-    setTimeout(() => {
-      window.location.href = "https://capsulememories.app/story/${storyId}";
-    }, 2000);
-  </script>
 </body>
 </html>`;
 
