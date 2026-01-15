@@ -1,0 +1,13 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "844NRE74R7.app.lovable.capsule",
+        "paths": [
+          "/*"
+        ]
+      }
+    ]
+  }
+}
