@@ -9,9 +9,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Fetch story data from Supabase edge function
-    const response = await fetch(
-      `https://api.capapp.co/functions/v1/serve-story-link?storyId=${storyId}&format=json`
-    );
+// NEW
+const response = await fetch(
+  `https://resdvutqgrbbylknaxjp.supabase.co/functions/v1/story-meta?storyId=${storyId}&format=json`
+);
     
     let title = "View Story on Capsule";
     let description = "Open in Capsule to view this story";
