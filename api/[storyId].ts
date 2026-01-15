@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Add this helper function
+// Helper function to escape HTML special characters
 function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -8,6 +8,11 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+// Helper function to detect if string is a UUID
+function isUUID(str: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -18,8 +23,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    // Detect if it's a UUID or short code and build the appropriate query param
+    const queryParam = isUUID(storyId) ? `storyId=${storyId}` : `code=${storyId}`;
+    
     const response = await fetch(
-      `https://resdvutqgrbbylknaxjp.supabase.co/functions/v1/story-meta?storyId=${storyId}&format=json`
+      `https://resdvutqgrbbylknaxjp.supabase.co/functions/v1/story-meta?${queryParam}&format=json`
     );
     
     let title = "View Story on Capsule";
@@ -28,7 +36,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let videoUrl: string | null = null;
     let isVideo = false;
     let videoDuration: number | null = null;
-    const pageUrl = `https://capapp.co/story/${storyId}`;
+    let actualStoryId = storyId; // Will be updated with real UUID from response
+    let shareCode = storyId; // Will be updated with short code from response
     
     if (response.ok) {
       const data = await response.json();
@@ -38,7 +47,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (data.isVideo) isVideo = data.isVideo;
       if (data.videoUrl) videoUrl = data.videoUrl;
       if (data.videoDuration) videoDuration = data.videoDuration;
+      if (data.storyId) actualStoryId = data.storyId; // Get real UUID for deep links
+      if (data.shareCode) shareCode = data.shareCode; // Get short code for URLs
     }
+
+    // Use short code for page URL, but UUID for deep links (app needs UUID)
+    const pageUrl = `https://share.capapp.co/${shareCode}`;
+    const deepLinkId = actualStoryId; // Deep links use UUID
 
     // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
@@ -79,13 +94,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
   
-  <!-- App Deep Link Meta Tags -->
+  <!-- App Deep Link Meta Tags (use UUID for app deep links) -->
   <meta property="al:ios:app_store_id" content="6630382437">
   <meta property="al:ios:app_name" content="Capsule">
-  <meta property="al:ios:url" content="capsule://story/${storyId}">
+  <meta property="al:ios:url" content="capsule://story/${deepLinkId}">
   <meta property="al:android:package" content="com.capsule.app">
   <meta property="al:android:app_name" content="Capsule">
-  <meta property="al:android:url" content="capsule://story/${storyId}">
+  <meta property="al:android:url" content="capsule://story/${deepLinkId}">
   
   <style>
     body {
@@ -119,20 +134,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </style>
   
   <script>
-    const deepLink = "capsule://story/${storyId}";
-    const fallbackUrl = "https://capsuleapp.lovable.app/story/${storyId}";
+    // Try to open in app first
+    const deepLink = "capsule://story/${deepLinkId}";
+    const webFallback = "https://capapp.co/story/${deepLinkId}";
     
-    window.onload = function() {
-      window.location.href = deepLink;
-      setTimeout(() => { window.location.href = fallbackUrl; }, 1500);
-    };
+    window.location.href = deepLink;
+    
+    setTimeout(() => {
+      window.location.href = webFallback;
+    }, 2000);
   </script>
 </head>
 <body>
   <div class="container">
     <div class="spinner"></div>
     <p>Opening in Capsule...</p>
-    <a href="https://capsuleapp.lovable.app/story/${storyId}">Open in browser</a>
+    <a href="https://capapp.co/story/${deepLinkId}">Open in browser</a>
   </div>
 </body>
 </html>`;
