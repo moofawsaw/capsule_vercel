@@ -16,6 +16,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let title = "View Story on Capsule";
     let description = "Open in Capsule to view this story";
     let imageUrl = "https://capapp.co/og-default.png";
+    let isVideo = false;
+    let videoUrl: string | null = null;
+    let videoDuration: number | null = null;
     const pageUrl = `https://capapp.co/story/${storyId}`;
     
     if (response.ok) {
@@ -23,7 +26,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (data.title) title = data.title;
       if (data.description) description = data.description;
       if (data.imageUrl) imageUrl = data.imageUrl;
+      if (data.isVideo) isVideo = data.isVideo;
+      if (data.videoUrl) videoUrl = data.videoUrl;
+      if (data.videoDuration) videoDuration = data.videoDuration;
     }
+
+    // Build video meta tags if this is a video story
+    const videoMetaTags = isVideo && videoUrl ? `
+  <!-- Video OG Meta Tags -->
+  <meta property="og:type" content="video.other">
+  <meta property="og:video" content="${videoUrl}">
+  <meta property="og:video:secure_url" content="${videoUrl}">
+  <meta property="og:video:type" content="video/mp4">
+  <meta property="og:video:width" content="720">
+  <meta property="og:video:height" content="1280">
+  ${videoDuration ? `<meta property="og:video:duration" content="${videoDuration}">` : ''}` : `
+  <meta property="og:type" content="website">`;
+
+    // Build Twitter card tags - use player card for videos
+    const twitterCardTags = isVideo && videoUrl ? `
+  <meta name="twitter:card" content="player">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:player" content="${videoUrl}">
+  <meta name="twitter:player:width" content="720">
+  <meta name="twitter:player:height" content="1280">` : `
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${title}">
+  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:image" content="${imageUrl}">`;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -37,14 +69,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:url" content="${pageUrl}">
-  <meta property="og:type" content="website">
   <meta property="og:site_name" content="Capsule">
+  ${videoMetaTags}
   
   <!-- Twitter Card Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="${title}">
-  <meta name="twitter:description" content="${description}">
-  <meta name="twitter:image" content="${imageUrl}">
+  ${twitterCardTags}
   
   <!-- App Deep Link Meta Tags -->
   <meta property="al:ios:app_store_id" content="6630382437">
@@ -89,65 +118,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <div class="container">
     <div class="spinner"></div>
     <p>Opening in Capsule...</p>
-    <a href="${pageUrl}" id="fallback">Open in browser</a>
+    <a href="https://capsulememories.app/story/${storyId}">Open in browser</a>
   </div>
-  
   <script>
-    (function() {
-      var storyId = "${storyId}";
-      var customScheme = "capsule://story/" + storyId;
-      var fallbackUrl = "${pageUrl}";
-      var appOpened = false;
-      
-      // Detect if we're on iOS or Android
-      var isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-      var isAndroid = /Android/i.test(navigator.userAgent);
-      
-      // Try to open the app via custom scheme
-      function tryOpenApp() {
-        // Create a hidden iframe to attempt the custom scheme
-        // This avoids the "Safari cannot open the page" error
-        if (isIOS) {
-          // On iOS, use location.href directly but with visibility tracking
-          var now = Date.now();
-          window.location.href = customScheme;
-          
-          // If we're still here after 1.5 seconds, app probably isn't installed
-          setTimeout(function() {
-            if (document.hidden || Date.now() - now > 2000) {
-              appOpened = true;
-            }
-            if (!appOpened) {
-              window.location.href = fallbackUrl;
-            }
-          }, 1500);
-        } else if (isAndroid) {
-          // On Android, try intent URL first
-          var intentUrl = "intent://story/" + storyId + "#Intent;scheme=capsule;package=com.capsule.app;end";
-          window.location.href = intentUrl;
-          
-          // Fallback after timeout
-          setTimeout(function() {
-            if (!document.hidden) {
-              window.location.href = fallbackUrl;
-            }
-          }, 1500);
-        } else {
-          // Desktop: go directly to web fallback
-          window.location.href = fallbackUrl;
-        }
-      }
-      
-      // Track visibility changes (app opening causes page to become hidden)
-      document.addEventListener("visibilitychange", function() {
-        if (document.hidden) {
-          appOpened = true;
-        }
-      });
-      
-      // Start trying to open the app
-      tryOpenApp();
-    })();
+    window.location.href = "capsule://story/${storyId}";
+    setTimeout(() => {
+      window.location.href = "https://capsulememories.app/story/${storyId}";
+    }, 2000);
   </script>
 </body>
 </html>`;
