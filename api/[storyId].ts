@@ -50,7 +50,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="al:ios:app_store_id" content="6630382437">
   <meta property="al:ios:app_name" content="Capsule">
   <meta property="al:ios:url" content="capsule://story/${storyId}">
-  <meta property="al:android:package" content="app.lovable.capsule">
+  <meta property="al:android:package" content="com.capsule.app">
   <meta property="al:android:app_name" content="Capsule">
   <meta property="al:android:url" content="capsule://story/${storyId}">
   
@@ -123,7 +123,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }, 1500);
         } else if (isAndroid) {
           // On Android, try intent URL first
-          var intentUrl = "intent://story/" + storyId + "#Intent;scheme=capsule;package=app.lovable.capsule;end";
+          var intentUrl = "intent://story/" + storyId + "#Intent;scheme=capsule;package=com.capsule.app;end";
           window.location.href = intentUrl;
           
           // Fallback after timeout
