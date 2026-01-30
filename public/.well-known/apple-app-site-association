@@ -9,5 +9,8 @@
         ]
       }
     ]
+  },
+  "webcredentials": {
+    "apps": ["X6CZ58NG2P.com.capapp.capsule"]
   }
 }
