@@ -4,17 +4,7 @@
     "details": [
       {
         "appID": "X6CZ58NG2P.com.capapp.capsule",
-        "paths": [
-          "/join/*",
-          "/memory/*",
-          "/profile/*",
-          "/friends",
-          "/group/*",
-          "/notifications",
-          "/s/*",
-          "/story/*",
-          "/user/*"
-        ]
+        "paths": ["/*"]
       }
     ]
   },
