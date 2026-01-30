@@ -2,10 +2,25 @@
   "applinks": {
     "apps": [],
     "details": [
-      { "appID": "X6CZ58NG2P.com.capapp.capsule", "paths": ["/*"] }
+      {
+        "appID": "X6CZ58NG2P.com.capapp.capsule",
+        "paths": [
+          "/join/*",
+          "/memory/*",
+          "/profile/*",
+          "/friends",
+          "/group/*",
+          "/notifications",
+          "/s/*",
+          "/story/*",
+          "/user/*"
+        ]
+      }
     ]
   },
   "webcredentials": {
-    "apps": ["X6CZ58NG2P.com.capapp.capsule"]
+    "apps": [
+      "X6CZ58NG2P.com.capapp.capsule"
+    ]
   }
 }
