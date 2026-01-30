@@ -9,6 +9,57 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
+function getSupabaseEnv(): { url: string; apiKey: string } | null {
+  const url =
+    (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim();
+  const apiKey =
+    (process.env.SUPABASE_SERVICE_ROLE_KEY ??
+      process.env.SUPABASE_ANON_KEY ??
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+      '').trim();
+
+  if (!url || !apiKey) return null;
+  return { url, apiKey };
+}
+
+async function fetchInviteName(params: {
+  type: 'memory' | 'group';
+  inviteCode: string;
+}): Promise<string | null> {
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  const table = params.type === 'memory' ? 'memories' : 'groups';
+  const field = params.type === 'memory' ? 'title' : 'name';
+
+  const url =
+    `${env.url.replace(/\/$/, '')}/rest/v1/${table}` +
+    `?invite_code=eq.${encodeURIComponent(params.inviteCode)}` +
+    `&select=${field}` +
+    `&limit=1`;
+
+  try {
+    const r = await fetch(url, {
+      headers: {
+        apikey: env.apiKey,
+        Authorization: `Bearer ${env.apiKey}`,
+        Accept: 'application/json',
+      },
+    });
+
+    if (!r.ok) return null;
+    const data = (await r.json()) as unknown;
+    const row =
+      Array.isArray(data) && data.length > 0 && data[0] && typeof data[0] === 'object'
+        ? (data[0] as Record<string, unknown>)
+        : null;
+    const name = row?.[field];
+    return typeof name === 'string' && name.trim().length > 0 ? name.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { type, code } = req.query;
 
@@ -25,12 +76,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const pageUrl = `https://share.capapp.co/join/${t}/${encodeURIComponent(c)}`;
   const webFallback = `https://capapp.co/join/${t}/${encodeURIComponent(c)}`;
 
-  // Option A:
+  // Dynamic-ish:
   // - Static OG image
-  // - Dynamic-ish title/description based on type (not fetching DB)
+  // - Dynamic title includes actual memory/group name when available
+  const inviteName =
+    isMemory || isGroup ? await fetchInviteName({ type: t as 'memory' | 'group', inviteCode: c }) : null;
+
   const title = escapeHtml(
-    isMemory ? 'Join a Capsule Memory' : isGroup ? 'Join a Capsule Group' : 'Join Capsule',
+    inviteName
+      ? `Tap to join ${inviteName} on Capsule`
+      : isMemory
+        ? 'Tap to join this memory on Capsule'
+        : isGroup
+          ? 'Tap to join this group on Capsule'
+          : 'Tap to join on Capsule',
   );
+
   const description = escapeHtml(
     isMemory
       ? 'Tap to join this memory in Capsule.'
