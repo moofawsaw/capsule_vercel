@@ -1,12 +1,6 @@
 {
-  "redirects": [
-    {
-      "source": "/join/:type/:code",
-      "destination": "https://capapp.co/join/:type/:code",
-      "permanent": false
-    }
-  ],
   "rewrites": [
+    { "source": "/join/:type/:code", "destination": "/api/join/:type/:code" },
     { "source": "/:storyId", "destination": "/api/:storyId" }
   ],
   "headers": [
