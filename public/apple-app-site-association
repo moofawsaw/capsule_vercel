@@ -1,0 +1,17 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "X6CZ58NG2P.com.capapp.capsule",
+        "paths": ["/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "X6CZ58NG2P.com.capapp.capsule"
+    ]
+  }
+}
+
