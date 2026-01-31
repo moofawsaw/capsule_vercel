@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/apple-app-site-association", "destination": "/.well-known/apple-app-site-association" },
     { "source": "/join/:type/:code", "destination": "/api/join/:type/:code" },
     { "source": "/:storyId", "destination": "/api/:storyId" }
   ],
