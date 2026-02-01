@@ -60,6 +60,53 @@ async function fetchInviteName(params: {
   }
 }
 
+async function fetchFriendPreview(params: {
+  friendCode: string;
+}): Promise<{ displayName?: string | null; username?: string | null } | null> {
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  // Use the RPC to bypass any RLS on user_profiles.
+  const url = `${env.url.replace(/\/$/, '')}/rest/v1/rpc/get_user_preview_by_friend_code`;
+
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        apikey: env.apiKey,
+        Authorization: `Bearer ${env.apiKey}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify({ p_friend_code: params.friendCode }),
+    });
+
+    if (!r.ok) return null;
+    const data = (await r.json()) as unknown;
+
+    // PostgREST can return either an object or a 1-element array depending on
+    // function definition/call behavior; accept both.
+    const row: Record<string, unknown> | null =
+      data && typeof data === 'object' && !Array.isArray(data)
+        ? (data as Record<string, unknown>)
+        : Array.isArray(data) && data.length > 0 && data[0] && typeof data[0] === 'object'
+          ? (data[0] as Record<string, unknown>)
+          : null;
+
+    if (!row) return null;
+
+    const displayName = typeof row.display_name === 'string' ? row.display_name.trim() : null;
+    const username = typeof row.username === 'string' ? row.username.trim() : null;
+
+    return {
+      displayName: displayName && displayName.length > 0 ? displayName : null,
+      username: username && username.length > 0 ? username : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { type, code } = req.query;
 
@@ -72,6 +119,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const isMemory = t === 'memory';
   const isGroup = t === 'group';
+  const isFriend = t === 'friend';
 
   const pageUrl = `https://share.capapp.co/join/${t}/${encodeURIComponent(c)}`;
   const webFallback = `https://capapp.co/join/${t}/${encodeURIComponent(c)}`;
@@ -82,22 +130,33 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const inviteName =
     isMemory || isGroup ? await fetchInviteName({ type: t as 'memory' | 'group', inviteCode: c }) : null;
 
+  const friendPreview = isFriend ? await fetchFriendPreview({ friendCode: c }) : null;
+  const friendName =
+    friendPreview?.displayName ??
+    (friendPreview?.username ? `@${friendPreview.username}` : null);
+
   const title = escapeHtml(
-    inviteName
-      ? `Tap to join ${inviteName} on Capsule`
-      : isMemory
-        ? 'Tap to join this memory on Capsule'
-        : isGroup
-          ? 'Tap to join this group on Capsule'
-          : 'Tap to join on Capsule',
+    isFriend
+      ? friendName
+        ? `Add ${friendName} on Capsule`
+        : 'Add a friend on Capsule'
+      : inviteName
+        ? `Tap to join ${inviteName} on Capsule`
+        : isMemory
+          ? 'Tap to join this memory on Capsule'
+          : isGroup
+            ? 'Tap to join this group on Capsule'
+            : 'Tap to join on Capsule',
   );
 
   const description = escapeHtml(
-    isMemory
-      ? 'Tap to join this memory in Capsule.'
-      : isGroup
-        ? 'Tap to join this group in Capsule.'
-        : 'Tap to join in Capsule.',
+    isFriend
+      ? 'Tap to add this friend on Capsule.'
+      : isMemory
+        ? 'Tap to join this memory in Capsule.'
+        : isGroup
+          ? 'Tap to join this group in Capsule.'
+          : 'Tap to join in Capsule.',
   );
 
   // Static OG image (use an existing stable asset; can be replaced later).
