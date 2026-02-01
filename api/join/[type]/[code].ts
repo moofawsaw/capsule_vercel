@@ -207,15 +207,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .title { font-size: 20px; font-weight: 800; margin: 0 0 8px; }
     .desc { font-size: 14px; color: rgba(248,250,252,0.78); margin: 0 0 18px; }
-    .btn {
-      display: block;
-      width: 100%;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-weight: 800;
-      text-decoration: none;
-      margin: 10px 0 0;
-    }
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-weight: 800;
+  text-decoration: none;
+
+  margin: 10px 0 0;
+
+  /* critical overflow protection */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-break: break-word;
+}
     .primary { background: #A78BFA; color: #0c0d13; }
     .secondary { background: transparent; border: 1px solid rgba(255,255,255,0.18); color: #F8FAFC; }
     .fine { font-size: 12px; color: rgba(248,250,252,0.6); margin-top: 14px; }
