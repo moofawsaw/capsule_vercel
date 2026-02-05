@@ -9,6 +9,45 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
+function safeTrim(v: unknown): string {
+  return typeof v === 'string' ? v.trim() : '';
+}
+
+function firstInitial(v: string | null | undefined): string {
+  const s = (v ?? '').trim();
+  return s.length > 0 ? s[0]!.toUpperCase() : 'C';
+}
+
+function formatDate(iso: string | null | undefined): string | null {
+  const raw = (iso ?? '').trim();
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return null;
+  try {
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    }).format(d);
+  } catch {
+    return d.toISOString().slice(0, 10);
+  }
+}
+
+function resolveAvatarUrl(params: {
+  supabaseUrl: string | null;
+  raw: unknown;
+}): string {
+  const rawStr = safeTrim(params.raw);
+  if (!rawStr) return '';
+  if (rawStr.startsWith('http://') || rawStr.startsWith('https://')) return rawStr;
+  const base = (params.supabaseUrl ?? '').trim().replace(/\/$/, '');
+  if (!base) return '';
+  const cleaned = rawStr.replace(/^\/+/, '');
+  // Assume the stored value already contains bucket/path (e.g. "avatars/....png")
+  return `${base}/storage/v1/object/public/${encodeURI(cleaned)}`;
+}
+
 function getSupabaseEnv(): { url: string; apiKey: string } | null {
   const url =
     (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim();
@@ -24,14 +63,19 @@ function getSupabaseEnv(): { url: string; apiKey: string } | null {
 
 async function fetchCreatorPreview(params: {
   userId: string;
-}): Promise<{ displayName?: string | null; username?: string | null } | null> {
+}): Promise<{
+  displayName?: string | null;
+  username?: string | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+} | null> {
   const env = getSupabaseEnv();
   if (!env) return null;
 
   const url =
     `${env.url.replace(/\/$/, '')}/rest/v1/user_profiles` +
     `?id=eq.${encodeURIComponent(params.userId)}` +
-    `&select=display_name,username` +
+    `&select=display_name,username,avatar_url,bio` +
     `&limit=1`;
 
   try {
@@ -52,9 +96,14 @@ async function fetchCreatorPreview(params: {
     const displayName =
       typeof row.display_name === 'string' ? row.display_name.trim() : null;
     const username = typeof row.username === 'string' ? row.username.trim() : null;
+    const avatarUrl =
+      typeof row.avatar_url === 'string' ? row.avatar_url.trim() : null;
+    const bio = typeof row.bio === 'string' ? row.bio.trim() : null;
     return {
       displayName: displayName && displayName.length > 0 ? displayName : null,
       username: username && username.length > 0 ? username : null,
+      avatarUrl: avatarUrl && avatarUrl.length > 0 ? avatarUrl : null,
+      bio: bio && bio.length > 0 ? bio : null,
     };
   } catch {
     return null;
@@ -64,17 +113,32 @@ async function fetchCreatorPreview(params: {
 async function fetchInviteMeta(params: {
   type: 'memory' | 'group';
   inviteCode: string;
-}): Promise<{ inviteName?: string | null; creatorId?: string | null } | null> {
+}): Promise<{
+  inviteName?: string | null;
+  creatorId?: string | null;
+  createdAt?: string | null;
+  expiresAt?: string | null; // memories only
+  duration?: string | null; // memories only
+  visibility?: string | null; // memories only
+  state?: string | null; // memories only
+  contributorCount?: number | null; // memories only
+  memberCount?: number | null; // groups only
+  locationName?: string | null; // memories only (optional)
+} | null> {
   const env = getSupabaseEnv();
   if (!env) return null;
 
   const table = params.type === 'memory' ? 'memories' : 'groups';
   const field = params.type === 'memory' ? 'title' : 'name';
+  const select =
+    params.type === 'memory'
+      ? `${field},creator_id,created_at,expires_at,duration,visibility,state,contributor_count,location_name`
+      : `${field},creator_id,created_at,member_count`;
 
   const url =
     `${env.url.replace(/\/$/, '')}/rest/v1/${table}` +
     `?invite_code=eq.${encodeURIComponent(params.inviteCode)}` +
-    `&select=${field},creator_id` +
+    `&select=${encodeURIComponent(select)}` +
     `&limit=1`;
 
   try {
@@ -102,7 +166,42 @@ async function fetchInviteMeta(params: {
         ? row.creator_id.trim()
         : null;
 
-    return { inviteName, creatorId };
+    const createdAt = typeof row.created_at === 'string' ? row.created_at.trim() : null;
+    const expiresAt = typeof row.expires_at === 'string' ? row.expires_at.trim() : null;
+    const duration = typeof row.duration === 'string' ? row.duration.trim() : null;
+    const visibility = typeof row.visibility === 'string' ? row.visibility.trim() : null;
+    const state = typeof row.state === 'string' ? row.state.trim() : null;
+    const locationName =
+      typeof row.location_name === 'string' ? row.location_name.trim() : null;
+
+    const contributorCountRaw = row.contributor_count;
+    const contributorCount =
+      typeof contributorCountRaw === 'number'
+        ? contributorCountRaw
+        : typeof contributorCountRaw === 'string'
+          ? Number(contributorCountRaw)
+          : null;
+
+    const memberCountRaw = row.member_count;
+    const memberCount =
+      typeof memberCountRaw === 'number'
+        ? memberCountRaw
+        : typeof memberCountRaw === 'string'
+          ? Number(memberCountRaw)
+          : null;
+
+    return {
+      inviteName,
+      creatorId,
+      createdAt,
+      expiresAt,
+      duration,
+      visibility,
+      state,
+      contributorCount: contributorCount != null && !Number.isNaN(contributorCount) ? contributorCount : null,
+      memberCount: memberCount != null && !Number.isNaN(memberCount) ? memberCount : null,
+      locationName: locationName && locationName.length > 0 ? locationName : null,
+    };
   } catch {
     return null;
   }
@@ -110,7 +209,12 @@ async function fetchInviteMeta(params: {
 
 async function fetchFriendPreview(params: {
   friendCode: string;
-}): Promise<{ displayName?: string | null; username?: string | null } | null> {
+}): Promise<{
+  displayName?: string | null;
+  username?: string | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+} | null> {
   const env = getSupabaseEnv();
   if (!env) return null;
 
@@ -145,10 +249,14 @@ async function fetchFriendPreview(params: {
 
     const displayName = typeof row.display_name === 'string' ? row.display_name.trim() : null;
     const username = typeof row.username === 'string' ? row.username.trim() : null;
+    const avatarUrl = typeof row.avatar_url === 'string' ? row.avatar_url.trim() : null;
+    const bio = typeof row.bio === 'string' ? row.bio.trim() : null;
 
     return {
       displayName: displayName && displayName.length > 0 ? displayName : null,
       username: username && username.length > 0 ? username : null,
+      avatarUrl: avatarUrl && avatarUrl.length > 0 ? avatarUrl : null,
+      bio: bio && bio.length > 0 ? bio : null,
     };
   } catch {
     return null;
@@ -187,43 +295,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const creatorName =
     creatorPreview?.displayName ??
     (creatorPreview?.username ? `@${creatorPreview.username}` : null);
+  const supabaseUrl = getSupabaseEnv()?.url ?? null;
+  const creatorAvatarUrl = resolveAvatarUrl({
+    supabaseUrl,
+    raw: creatorPreview?.avatarUrl,
+  });
+  const creatorBio = (creatorPreview?.bio ?? '').trim();
 
   const friendPreview = isFriend ? await fetchFriendPreview({ friendCode: c }) : null;
   const friendName =
     friendPreview?.displayName ??
     (friendPreview?.username ? `@${friendPreview.username}` : null);
+  const friendAvatarUrl = resolveAvatarUrl({
+    supabaseUrl,
+    raw: friendPreview?.avatarUrl,
+  });
+  const friendBio = (friendPreview?.bio ?? '').trim();
+
+  const inviteTypeLabel = isFriend ? 'Friend' : isMemory ? 'Memory' : isGroup ? 'Group' : 'Invite';
+  const inviteCreatedLabel = formatDate(inviteMeta?.createdAt) ?? null;
+  const inviteExpiresLabel = formatDate(inviteMeta?.expiresAt) ?? null;
 
   const title = escapeHtml(
     isFriend
       ? friendName
-        ? `Add ${friendName} on Capsule`
-        : 'Add a friend on Capsule'
+        ? `You’ve been invited to add ${friendName}`
+        : 'You’ve been invited to add a friend'
       : inviteName
-        ? `Tap to join ${inviteName} on Capsule`
+        ? `You’re invited to join ${inviteName}`
         : isMemory
-          ? 'Tap to join this memory on Capsule'
+          ? 'You’re invited to join a memory'
           : isGroup
-            ? 'Tap to join this group on Capsule'
-            : 'Tap to join on Capsule',
+            ? 'You’re invited to join a group'
+            : 'You’re invited to join',
   );
 
   const description = escapeHtml(
     isFriend
-      ? 'Download Capsule to add this friend.'
+      ? 'Download Capsule to add this friend, share memories, and post stories together.'
       : inviteName
-        ? `Download Capsule to join ${inviteName}.`
+        ? `Download Capsule to join ${inviteName}, add your stories, and view everyone’s moments in one place.`
         : isMemory
-          ? 'Download Capsule to join this memory.'
+          ? 'Download Capsule to join this memory, add your stories, and view everyone’s moments in one place.'
           : isGroup
-            ? 'Download Capsule to join this group.'
+            ? 'Download Capsule to join this group and start sharing memories together.'
             : 'Download Capsule to continue.',
   );
 
   const downloadCta = description;
 
   const detailLine = escapeHtml(
-    (isMemory || isGroup) && creatorName && creatorName.trim().length > 0
-      ? `From ${creatorName}`
+    (isMemory || isGroup) && (creatorName ?? '').trim().length > 0
+      ? `From ${creatorName ?? ''}`
       : '',
   );
 
@@ -265,7 +388,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
-      background: #0c0d13;
+      background: radial-gradient(1000px 600px at 20% 0%, rgba(167,139,250,0.30), transparent 55%),
+                  radial-gradient(900px 520px at 80% 40%, rgba(129,73,223,0.22), transparent 60%),
+                  #0c0d13;
       color: #F8FAFC;
     }
     .wrap {
@@ -274,15 +399,94 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       padding: 28px 18px;
       text-align: center;
     }
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 4px 0 16px;
+    }
+    .brand img { width: 28px; height: 28px; border-radius: 8px; }
+    .brand .name { font-weight: 900; letter-spacing: 0.2px; }
     .card {
       background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.10);
       border-radius: 16px;
       padding: 18px;
+      text-align: left;
     }
-    .title { font-size: 20px; font-weight: 800; margin: 0 0 8px; }
+    .topRow {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      font-size: 12px;
+      color: rgba(248,250,252,0.88);
+      white-space: nowrap;
+    }
+    .title { font-size: 20px; font-weight: 900; margin: 0 0 6px; line-height: 1.18; }
     .meta { font-size: 13px; color: rgba(248,250,252,0.72); margin: 0 0 10px; }
-    .desc { font-size: 14px; color: rgba(248,250,252,0.78); margin: 0 0 18px; }
+    .desc { font-size: 14px; color: rgba(248,250,252,0.80); margin: 0 0 14px; line-height: 1.45; }
+    .sectionTitle { font-size: 12px; letter-spacing: 0.3px; text-transform: uppercase; color: rgba(248,250,252,0.58); margin: 14px 0 8px; }
+    .inviter {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,0.20);
+      border: 1px solid rgba(255,255,255,0.10);
+    }
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 999px;
+      background: rgba(167,139,250,0.25);
+      border: 1px solid rgba(255,255,255,0.14);
+      overflow: hidden;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: rgba(248,250,252,0.92);
+    }
+    .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .inviter .who { min-width: 0; }
+    .inviter .who .n { font-weight: 900; }
+    .inviter .who .u { color: rgba(248,250,252,0.72); font-size: 13px; margin-top: 2px; }
+    .inviter .who .b { color: rgba(248,250,252,0.68); font-size: 13px; margin-top: 6px; line-height: 1.35; }
+    .details {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .detail {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.10);
+      font-size: 13px;
+      color: rgba(248,250,252,0.84);
+    }
+    .detail .k { color: rgba(248,250,252,0.62); }
+    .detail .v { text-align: right; }
+    .why ul { margin: 8px 0 0; padding-left: 18px; color: rgba(248,250,252,0.78); }
+    .why li { margin: 6px 0; line-height: 1.35; }
 .btn {
   display: flex;
   align-items: center;
@@ -313,10 +517,68 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </head>
 <body>
   <div class="wrap">
+    <div class="brand">
+      <img src="https://share.capapp.co/apple-touch-icon.png" alt="Capsule">
+      <div class="name">Capsule</div>
+    </div>
     <div class="card">
+      <div class="topRow">
+        <div class="chip">${escapeHtml(inviteTypeLabel)}</div>
+        ${inviteCreatedLabel ? `<div class="chip">Created ${escapeHtml(inviteCreatedLabel)}</div>` : ''}
+      </div>
       <h1 class="title">${title}</h1>
       ${detailLine ? `<div class="meta">${detailLine}</div>` : ''}
-      <p class="desc">${downloadCta}</p>
+
+      ${isFriend ? `
+        <div class="inviter" style="margin-top: 10px;">
+          <div class="avatar">
+            ${friendAvatarUrl ? `<img src="${escapeHtml(friendAvatarUrl)}" alt="Avatar">` : `${escapeHtml(firstInitial(friendName))}`}
+          </div>
+          <div class="who">
+            <div class="n">${escapeHtml(friendPreview?.displayName ?? friendName ?? 'Friend')}</div>
+            ${friendPreview?.username ? `<div class="u">@${escapeHtml(friendPreview.username)}</div>` : ''}
+            ${friendBio ? `<div class="b">${escapeHtml(friendBio)}</div>` : ''}
+          </div>
+        </div>
+      ` : `
+        <div class="sectionTitle">Invited by</div>
+        <div class="inviter">
+          <div class="avatar">
+            ${creatorAvatarUrl ? `<img src="${escapeHtml(creatorAvatarUrl)}" alt="Avatar">` : `${escapeHtml(firstInitial(creatorName ?? ''))}`}
+          </div>
+          <div class="who">
+            <div class="n">${escapeHtml(creatorPreview?.displayName ?? creatorName ?? 'Capsule user')}</div>
+            ${creatorPreview?.username ? `<div class="u">@${escapeHtml(creatorPreview.username)}</div>` : ''}
+            ${creatorBio ? `<div class="b">${escapeHtml(creatorBio)}</div>` : ''}
+          </div>
+        </div>
+      `}
+
+      ${!isFriend ? `
+        <div class="sectionTitle">About this ${escapeHtml(inviteTypeLabel.toLowerCase())}</div>
+        <div class="details">
+          ${inviteName ? `<div class="detail"><div class="k">Name</div><div class="v">${escapeHtml(inviteName)}</div></div>` : ''}
+          ${inviteCreatedLabel ? `<div class="detail"><div class="k">Created</div><div class="v">${escapeHtml(inviteCreatedLabel)}</div></div>` : ''}
+          ${inviteExpiresLabel ? `<div class="detail"><div class="k">Expires</div><div class="v">${escapeHtml(inviteExpiresLabel)}</div></div>` : ''}
+          ${typeof inviteMeta?.memberCount === 'number' ? `<div class="detail"><div class="k">Members</div><div class="v">${inviteMeta!.memberCount}</div></div>` : ''}
+          ${typeof inviteMeta?.contributorCount === 'number' ? `<div class="detail"><div class="k">Contributors</div><div class="v">${inviteMeta!.contributorCount}</div></div>` : ''}
+          ${inviteMeta?.visibility ? `<div class="detail"><div class="k">Visibility</div><div class="v">${escapeHtml(inviteMeta.visibility)}</div></div>` : ''}
+          ${inviteMeta?.duration ? `<div class="detail"><div class="k">Duration</div><div class="v">${escapeHtml(inviteMeta.duration.replace(/_/g, ' '))}</div></div>` : ''}
+          ${inviteMeta?.locationName ? `<div class="detail"><div class="k">Location</div><div class="v">${escapeHtml(inviteMeta.locationName)}</div></div>` : ''}
+        </div>
+      ` : ''}
+
+      <div class="sectionTitle">Why download Capsule?</div>
+      <div class="why">
+        <ul>
+          <li>Accept this invite and jump straight into the ${escapeHtml(inviteTypeLabel.toLowerCase())}.</li>
+          <li>Create and watch stories with friends in one place—private by default.</li>
+          <li>Get notifications when new moments are added so you never miss the recap.</li>
+        </ul>
+      </div>
+
+      <div class="sectionTitle">Next steps</div>
+      <p class="desc">Download Capsule, then open this same link again. If you don’t have an account yet, you’ll create one in seconds.</p>
       <a class="btn primary" id="downloadBtn" href="${IOS_APP_STORE}">Download Capsule</a>
       <div class="fine">Once installed, open this same link again to accept the invite.</div>
     </div>
