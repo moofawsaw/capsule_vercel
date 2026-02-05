@@ -22,20 +22,16 @@ function getSupabaseEnv(): { url: string; apiKey: string } | null {
   return { url, apiKey };
 }
 
-async function fetchInviteName(params: {
-  type: 'memory' | 'group';
-  inviteCode: string;
-}): Promise<string | null> {
+async function fetchCreatorPreview(params: {
+  userId: string;
+}): Promise<{ displayName?: string | null; username?: string | null } | null> {
   const env = getSupabaseEnv();
   if (!env) return null;
 
-  const table = params.type === 'memory' ? 'memories' : 'groups';
-  const field = params.type === 'memory' ? 'title' : 'name';
-
   const url =
-    `${env.url.replace(/\/$/, '')}/rest/v1/${table}` +
-    `?invite_code=eq.${encodeURIComponent(params.inviteCode)}` +
-    `&select=${field}` +
+    `${env.url.replace(/\/$/, '')}/rest/v1/user_profiles` +
+    `?id=eq.${encodeURIComponent(params.userId)}` +
+    `&select=display_name,username` +
     `&limit=1`;
 
   try {
@@ -46,15 +42,67 @@ async function fetchInviteName(params: {
         Accept: 'application/json',
       },
     });
-
     if (!r.ok) return null;
     const data = (await r.json()) as unknown;
     const row =
       Array.isArray(data) && data.length > 0 && data[0] && typeof data[0] === 'object'
         ? (data[0] as Record<string, unknown>)
         : null;
-    const name = row?.[field];
-    return typeof name === 'string' && name.trim().length > 0 ? name.trim() : null;
+    if (!row) return null;
+    const displayName =
+      typeof row.display_name === 'string' ? row.display_name.trim() : null;
+    const username = typeof row.username === 'string' ? row.username.trim() : null;
+    return {
+      displayName: displayName && displayName.length > 0 ? displayName : null,
+      username: username && username.length > 0 ? username : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchInviteMeta(params: {
+  type: 'memory' | 'group';
+  inviteCode: string;
+}): Promise<{ inviteName?: string | null; creatorId?: string | null } | null> {
+  const env = getSupabaseEnv();
+  if (!env) return null;
+
+  const table = params.type === 'memory' ? 'memories' : 'groups';
+  const field = params.type === 'memory' ? 'title' : 'name';
+
+  const url =
+    `${env.url.replace(/\/$/, '')}/rest/v1/${table}` +
+    `?invite_code=eq.${encodeURIComponent(params.inviteCode)}` +
+    `&select=${field},creator_id` +
+    `&limit=1`;
+
+  try {
+    const r = await fetch(url, {
+      headers: {
+        apikey: env.apiKey,
+        Authorization: `Bearer ${env.apiKey}`,
+        Accept: 'application/json',
+      },
+    });
+    if (!r.ok) return null;
+
+    const data = (await r.json()) as unknown;
+    const row =
+      Array.isArray(data) && data.length > 0 && data[0] && typeof data[0] === 'object'
+        ? (data[0] as Record<string, unknown>)
+        : null;
+    if (!row) return null;
+
+    const rawName = row[field];
+    const inviteName =
+      typeof rawName === 'string' && rawName.trim().length > 0 ? rawName.trim() : null;
+    const creatorId =
+      typeof row.creator_id === 'string' && row.creator_id.trim().length > 0
+        ? row.creator_id.trim()
+        : null;
+
+    return { inviteName, creatorId };
   } catch {
     return null;
   }
@@ -122,13 +170,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isFriend = t === 'friend';
 
   const pageUrl = `https://share.capapp.co/join/${t}/${encodeURIComponent(c)}`;
-  const webFallback = `https://capapp.co/join/${t}/${encodeURIComponent(c)}`;
+  const IOS_APP_STORE = 'https://apps.apple.com/app/id6630382437';
+  const ANDROID_PLAY_STORE =
+    'https://play.google.com/store/apps/details?id=com.capsule.app';
 
   // Dynamic-ish:
   // - Static OG image
   // - Dynamic title includes actual memory/group name when available
-  const inviteName =
-    isMemory || isGroup ? await fetchInviteName({ type: t as 'memory' | 'group', inviteCode: c }) : null;
+  const inviteMeta =
+    isMemory || isGroup ? await fetchInviteMeta({ type: t as 'memory' | 'group', inviteCode: c }) : null;
+  const inviteName = inviteMeta?.inviteName ?? null;
+
+  const creatorPreview = inviteMeta?.creatorId
+    ? await fetchCreatorPreview({ userId: inviteMeta.creatorId })
+    : null;
+  const creatorName =
+    creatorPreview?.displayName ??
+    (creatorPreview?.username ? `@${creatorPreview.username}` : null);
 
   const friendPreview = isFriend ? await fetchFriendPreview({ friendCode: c }) : null;
   const friendName =
@@ -151,12 +209,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const description = escapeHtml(
     isFriend
-      ? 'Tap to add this friend on Capsule.'
-      : isMemory
-        ? 'Tap to join this memory in Capsule.'
-        : isGroup
-          ? 'Tap to join this group in Capsule.'
-          : 'Tap to join in Capsule.',
+      ? 'Download Capsule to add this friend.'
+      : inviteName
+        ? `Download Capsule to join ${inviteName}.`
+        : isMemory
+          ? 'Download Capsule to join this memory.'
+          : isGroup
+            ? 'Download Capsule to join this group.'
+            : 'Download Capsule to continue.',
+  );
+
+  const downloadCta = description;
+
+  const detailLine = escapeHtml(
+    (isMemory || isGroup) && creatorName && creatorName.trim().length > 0
+      ? `From ${creatorName}`
+      : '',
   );
 
   // Static OG image (use an existing stable asset; can be replaced later).
@@ -213,6 +281,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       padding: 18px;
     }
     .title { font-size: 20px; font-weight: 800; margin: 0 0 8px; }
+    .meta { font-size: 13px; color: rgba(248,250,252,0.72); margin: 0 0 10px; }
     .desc { font-size: 14px; color: rgba(248,250,252,0.78); margin: 0 0 18px; }
 .btn {
   display: flex;
@@ -246,14 +315,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <div class="wrap">
     <div class="card">
       <h1 class="title">${title}</h1>
-      <p class="desc">${description}</p>
-      <!-- Universal Link: if the app is installed + associated, iOS should open it -->
-      <a class="btn primary" href="${pageUrl}">Open in Capsule</a>
-      <!-- Browser fallback -->
-      <a class="btn secondary" href="${webFallback}">Continue in browser</a>
-      <div class="fine">If you have Capsule installed, “Open in Capsule” should open the app.</div>
+      ${detailLine ? `<div class="meta">${detailLine}</div>` : ''}
+      <p class="desc">${downloadCta}</p>
+      <a class="btn primary" id="downloadBtn" href="${IOS_APP_STORE}">Download Capsule</a>
+      <div class="fine">Once installed, open this same link again to accept the invite.</div>
     </div>
   </div>
+  <script>
+    (function() {
+      var ios = ${JSON.stringify(IOS_APP_STORE)};
+      var android = ${JSON.stringify(ANDROID_PLAY_STORE)};
+      function isAndroid(ua) { return /Android/i.test(ua); }
+      function isIOS(ua) { return /iPhone|iPad|iPod/i.test(ua); }
+      function pickStoreUrl() {
+        var ua = navigator.userAgent || '';
+        if (isAndroid(ua)) return android;
+        if (isIOS(ua)) return ios;
+        return ios;
+      }
+      try {
+        var a = document.getElementById('downloadBtn');
+        if (a) a.setAttribute('href', pickStoreUrl());
+      } catch (e) {}
+    })();
+  </script>
 </body>
 </html>`;
 
