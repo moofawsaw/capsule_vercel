@@ -506,7 +506,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   word-break: break-word;
 }
     .primary { background: #A78BFA; color: #0c0d13; }
-    .secondary { background: transparent; border: 1px solid rgba(255,255,255,0.18); color: #F8FAFC; }
     .fine { font-size: 12px; color: rgba(248,250,252,0.6); margin-top: 14px; }
   </style>
 </head>
