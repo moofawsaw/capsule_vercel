@@ -284,6 +284,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const isFriend = t === 'friend';
 
   const pageUrl = `https://share.capapp.co/join/${t}/${encodeURIComponent(c)}`;
+  const appArgument = `capsule://join/${t}/${encodeURIComponent(c)}`;
   const IOS_APP_STORE = 'https://apps.apple.com/app/id6630382437';
   const ANDROID_PLAY_STORE =
     'https://play.google.com/store/apps/details?id=com.capsule.app';
@@ -403,7 +404,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:image" content="${imageUrl}">
 
   <!-- iOS Smart App Banner (optional) -->
-  <meta name="apple-itunes-app" content="app-id=6630382437">
+  <meta name="apple-itunes-app" content="app-id=6630382437, app-argument=${escapeHtml(appArgument)}">
 
   <style>
     body {
