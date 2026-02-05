@@ -81,8 +81,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <title>${title}</title>
 
   <!-- Favicon -->
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="icon" href="https://share.capapp.co/favicon.ico" sizes="any">
+  <link rel="shortcut icon" href="https://share.capapp.co/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://share.capapp.co/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://share.capapp.co/favicon-16x16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
   
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="${title}">
