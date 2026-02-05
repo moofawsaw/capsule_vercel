@@ -330,6 +330,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             : 'You’re invited to join',
   );
 
+  const inviteSummary = escapeHtml(
+    isFriend
+      ? 'Friend invites can only be accepted in the Capsule app.'
+      : isMemory
+        ? 'Memories are collaborative story timelines—everyone adds moments, then you watch the recap together.'
+        : isGroup
+          ? 'Groups are private circles inside Capsule—used to share memories and stay connected.'
+          : 'This invite is handled inside the Capsule app.',
+  );
+
   const description = escapeHtml(
     isFriend
       ? 'Download Capsule to add this friend, share memories, and post stories together.'
@@ -349,6 +359,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? `From ${creatorName ?? ''}`
       : '',
   );
+
+  const firstWhyBullet = escapeHtml(
+    isFriend
+      ? 'Accept this friend invite and connect instantly.'
+      : isMemory
+        ? 'Join this memory and add your own story moments.'
+        : isGroup
+          ? 'Join this group to share and receive memories with the crew.'
+          : 'Accept this invite and continue inside Capsule.',
+  );
+
+  const hasAbout =
+    !isFriend &&
+    Boolean(
+      inviteName ||
+        inviteCreatedLabel ||
+        inviteExpiresLabel ||
+        typeof inviteMeta?.memberCount === 'number' ||
+        typeof inviteMeta?.contributorCount === 'number' ||
+        inviteMeta?.visibility ||
+        inviteMeta?.duration ||
+        inviteMeta?.locationName,
+    );
 
   // Static OG image (use an existing stable asset; can be replaced later).
   const imageUrl = 'https://capapp.co/og-default.png';
@@ -528,6 +561,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       </div>
       <h1 class="title">${title}</h1>
       ${detailLine ? `<div class="meta">${detailLine}</div>` : ''}
+      <p class="desc">${inviteSummary}</p>
 
       ${isFriend ? `
         <div class="inviter" style="margin-top: 10px;">
@@ -554,7 +588,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         </div>
       `}
 
-      ${!isFriend ? `
+      ${hasAbout ? `
         <div class="sectionTitle">About this ${escapeHtml(inviteTypeLabel.toLowerCase())}</div>
         <div class="details">
           ${inviteName ? `<div class="detail"><div class="k">Name</div><div class="v">${escapeHtml(inviteName)}</div></div>` : ''}
@@ -571,7 +605,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <div class="sectionTitle">Why download Capsule?</div>
       <div class="why">
         <ul>
-          <li>Accept this invite and jump straight into the ${escapeHtml(inviteTypeLabel.toLowerCase())}.</li>
+          <li>${firstWhyBullet}</li>
           <li>Create and watch stories with friends in one place—private by default.</li>
           <li>Get notifications when new moments are added so you never miss the recap.</li>
         </ul>
