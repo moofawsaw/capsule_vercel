@@ -405,13 +405,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   <!-- iOS Smart App Banner (optional) -->
   <meta name="apple-itunes-app" content="app-id=6630382437, app-argument=${escapeHtml(appArgument)}">
+  <meta name="color-scheme" content="light dark">
 
   <style>
+    :root {
+      /* Capsule theme tokens (dark) - mirrors ThemeHelper DarkModeColors */
+      --bg: #0c0d13;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --avatar-bg: rgba(167, 139, 250, 0.20);
+      --primary: #A78BFA;
+      --primary-contrast: #0c0d13;
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        /* Capsule theme tokens (light) - mirrors ThemeHelper LightModeColors */
+        --bg: #FFFFFF;
+        --text: #1E293B;
+        --muted: #475569;
+        --card-bg: #F1F5F9;
+        --avatar-bg: rgba(124, 58, 237, 0.10);
+        --primary: #7C3AED;
+        --primary-contrast: #FFFFFF;
+      }
+    }
+    html { color-scheme: light dark; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
-      background: #0c0d13;
-      color: #F8FAFC;
+      background: var(--bg);
+      color: var(--text);
     }
     .wrap {
       max-width: 520px;
@@ -429,7 +453,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .brand img { width: 28px; height: 28px; border-radius: 8px; }
     .brand .name { font-weight: 900; letter-spacing: 0.2px; }
     .card {
-      background: rgba(255,255,255,0.05);
+      background: var(--card-bg);
       border-radius: 16px;
       padding: 18px;
       text-align: left;
@@ -438,11 +462,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       font-size: 12px;
       letter-spacing: 0.3px;
       text-transform: uppercase;
-      color: rgba(248,250,252,0.62);
+      color: var(--muted);
       margin: 0 0 8px;
     }
     .title { font-size: 22px; font-weight: 900; margin: 0 0 8px; line-height: 1.15; }
-    .subtitle { font-size: 14px; color: rgba(248,250,252,0.78); margin: 0 0 14px; line-height: 1.45; }
+    .subtitle { font-size: 14px; color: var(--muted); margin: 0 0 14px; line-height: 1.45; }
     .person {
       display: flex;
       gap: 12px;
@@ -453,20 +477,20 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       width: 44px;
       height: 44px;
       border-radius: 999px;
-      background: rgba(167,139,250,0.20);
+      background: var(--avatar-bg);
       overflow: hidden;
       flex: 0 0 auto;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 900;
-      color: rgba(248,250,252,0.92);
+      color: var(--text);
     }
     .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .who { min-width: 0; }
     .who .n { font-weight: 900; }
-    .who .u { color: rgba(248,250,252,0.72); font-size: 13px; margin-top: 2px; }
-    .who .b { color: rgba(248,250,252,0.68); font-size: 13px; margin-top: 6px; line-height: 1.35; }
+    .who .u { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .who .b { color: var(--muted); font-size: 13px; margin-top: 6px; line-height: 1.35; }
     .details {
       display: grid;
       grid-template-columns: 1fr;
@@ -479,9 +503,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       gap: 10px;
       padding: 4px 0;
       font-size: 13px;
-      color: rgba(248,250,252,0.84);
+      color: var(--text);
     }
-    .detail .k { color: rgba(248,250,252,0.62); }
+    .detail .k { color: var(--muted); }
     .detail .v { text-align: right; }
 .btn {
   display: flex;
@@ -506,8 +530,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   white-space: nowrap;
   word-break: break-word;
 }
-    .primary { background: #A78BFA; color: #0c0d13; }
-    .fine { font-size: 12px; color: rgba(248,250,252,0.6); margin-top: 14px; }
+    .primary { background: var(--primary); color: var(--primary-contrast); }
+    .fine { font-size: 12px; color: var(--muted); opacity: 0.78; margin-top: 14px; }
   </style>
 </head>
 <body>
