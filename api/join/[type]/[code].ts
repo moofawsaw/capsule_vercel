@@ -372,8 +372,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         inviteMeta?.duration,
     );
 
-  // Static OG image (use an existing stable asset; can be replaced later).
-  const imageUrl = 'https://capapp.co/og-default.png';
+  // IMPORTANT:
+  // iOS share sheets will often use `og:image` as the leading thumbnail/icon.
+  // To keep memory/group/friend shares consistent (Capsule icon), use the app icon here.
+  const imageUrl = 'https://share.capapp.co/apple-touch-icon.png';
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -395,12 +397,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:secure_url" content="${imageUrl}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="180">
+  <meta property="og:image:height" content="180">
+  <meta property="og:image:alt" content="Capsule">
   <meta property="og:url" content="${pageUrl}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Capsule">
 
   <!-- Twitter Card Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
