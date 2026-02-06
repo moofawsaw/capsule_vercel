@@ -375,7 +375,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // IMPORTANT:
   // iOS share sheets will often use `og:image` as the leading thumbnail/icon.
   // To keep memory/group/friend shares consistent (Capsule icon), use the app icon here.
-  const imageUrl = 'https://share.capapp.co/apple-touch-icon.png';
+  const imageUrl = 'https://share.capapp.co/logo_share.png';
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -389,9 +389,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <link rel="shortcut icon" href="https://share.capapp.co/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="https://share.capapp.co/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="https://share.capapp.co/favicon-16x16.png">
-  <link rel="icon" type="image/png" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="180x180" href="https://share.capapp.co/logo_share.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="https://share.capapp.co/logo_share.png">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="https://share.capapp.co/logo_share.png">
 
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="${title}">
@@ -546,7 +546,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 <body>
   <div class="wrap">
     <div class="brand">
-      <img src="https://share.capapp.co/apple-touch-icon.png" alt="Capsule">
+      <img src="https://share.capapp.co/logo_share.png" alt="Capsule">
       <div class="name">Capsule</div>
     </div>
     <div class="card">
