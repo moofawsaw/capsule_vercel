@@ -285,7 +285,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const pageUrl = `https://share.capapp.co/join/${t}/${encodeURIComponent(c)}`;
   const appArgument = `capsule://join/${t}/${encodeURIComponent(c)}`;
-  const IOS_APP_STORE = 'https://apps.apple.com/app/id6630382437';
+  const IOS_APP_STORE =
+    'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
+  const IOS_APP_STORE_ID = '6758107085';
   const ANDROID_PLAY_STORE =
     'https://play.google.com/store/apps/details?id=com.capsule.app';
 
@@ -412,7 +414,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:image" content="${imageUrl}">
 
   <!-- iOS Smart App Banner (optional) -->
-  <meta name="apple-itunes-app" content="app-id=6630382437, app-argument=${escapeHtml(appArgument)}">
+  <meta name="apple-itunes-app" content="app-id=${IOS_APP_STORE_ID}, app-argument=${escapeHtml(appArgument)}">
   <meta name="color-scheme" content="light dark">
 
   <style>

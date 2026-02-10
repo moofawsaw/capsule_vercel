@@ -102,7 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:image" content="${imageUrl}">
   
   <!-- App Deep Link Meta Tags (use UUID for app deep links) -->
-  <meta property="al:ios:app_store_id" content="6630382437">
+  <meta property="al:ios:app_store_id" content="6758107085">
   <meta property="al:ios:app_name" content="Capsule">
   <meta property="al:ios:url" content="capsule://story/${deepLinkId}">
   <meta property="al:android:package" content="com.capsule.app">
