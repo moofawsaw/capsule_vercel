@@ -336,7 +336,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? `You've been invited to add ${friendName}`
       : "You've been invited to add a friend"
     : inviteName
-      ? `You're invited to join ${inviteName}`
+      ? isMemory
+        ? `You're invited to join the memory ${inviteName}`
+        : isGroup
+          ? `You're invited to join the group ${inviteName}`
+          : `You're invited to join ${inviteName}`
       : isMemory
         ? "You're invited to join a memory"
         : isGroup
