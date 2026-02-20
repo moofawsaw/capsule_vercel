@@ -9,6 +9,12 @@ function escapeHtml(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
+function withOnCapsuleSuffix(input: string): string {
+  const t = input.trim();
+  if (!t) return 'Capsule';
+  return t.toLowerCase().endsWith(' on capsule') ? t : `${t} on Capsule`;
+}
+
 function safeTrim(v: unknown): string {
   return typeof v === 'string' ? v.trim() : '';
 }
@@ -325,19 +331,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const inviteCreatedLabel = formatDate(inviteMeta?.createdAt) ?? null;
   const inviteExpiresLabel = formatDate(inviteMeta?.expiresAt) ?? null;
 
-  const title = escapeHtml(
-    isFriend
-      ? friendName
-        ? `You’ve been invited to add ${friendName}`
-        : 'You’ve been invited to add a friend'
-      : inviteName
-        ? `You’re invited to join ${inviteName}`
-        : isMemory
-          ? 'You’re invited to join a memory'
-          : isGroup
-            ? 'You’re invited to join a group'
-            : 'You’re invited to join',
-  );
+  const rawTitle = isFriend
+    ? friendName
+      ? `You've been invited to add ${friendName}`
+      : "You've been invited to add a friend"
+    : inviteName
+      ? `You're invited to join ${inviteName}`
+      : isMemory
+        ? "You're invited to join a memory"
+        : isGroup
+          ? "You're invited to join a group"
+          : "You're invited to join";
+
+  const title = escapeHtml(withOnCapsuleSuffix(rawTitle));
 
   const inviteSummary = escapeHtml(
     isFriend
