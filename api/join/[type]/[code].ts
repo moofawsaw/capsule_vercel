@@ -60,6 +60,13 @@ function resolveAvatarUrl(params: {
   return `${base}/storage/v1/object/public/avatars/${encodeURI(cleaned)}`;
 }
 
+const META_ASSET_VERSION = (process.env.META_ASSET_VERSION ?? '20260315').trim();
+
+function withAssetVersion(url: string): string {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${encodeURIComponent(META_ASSET_VERSION)}`;
+}
+
 function getSupabaseEnv(): { url: string; apiKey: string } | null {
   const url =
     (process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').trim();
@@ -386,7 +393,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // `og:image` is what iMessage/iOS LinkPresentation will prefer for the share preview.
   // Use our dedicated 1200x630 share asset.
-  const imageUrl = 'https://share.capapp.co/logo_share.png';
+  const imageUrl = withAssetVersion('https://share.capapp.co/logo_share.png');
+  const faviconUrl = withAssetVersion('https://share.capapp.co/favicon.ico');
+  const favicon32Url = withAssetVersion('https://share.capapp.co/favicon-32x32.png');
+  const favicon16Url = withAssetVersion('https://share.capapp.co/favicon-16x16.png');
+  const appleTouchIconUrl = withAssetVersion('https://share.capapp.co/apple-touch-icon.png');
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -396,13 +407,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <title>${title}</title>
 
   <!-- Favicon -->
-  <link rel="icon" href="https://share.capapp.co/favicon.ico" sizes="any">
-  <link rel="shortcut icon" href="https://share.capapp.co/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://share.capapp.co/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://share.capapp.co/favicon-16x16.png">
-  <link rel="icon" type="image/png" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
+  <link rel="icon" href="${faviconUrl}" sizes="any">
+  <link rel="shortcut icon" href="${faviconUrl}">
+  <link rel="icon" type="image/png" sizes="32x32" href="${favicon32Url}">
+  <link rel="icon" type="image/png" sizes="16x16" href="${favicon16Url}">
+  <link rel="icon" type="image/png" sizes="180x180" href="${appleTouchIconUrl}">
+  <link rel="apple-touch-icon" sizes="180x180" href="${appleTouchIconUrl}">
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="${appleTouchIconUrl}">
 
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="${title}">
@@ -557,7 +568,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 <body>
   <div class="wrap">
     <div class="brand">
-      <img src="https://share.capapp.co/logo_share.png" alt="Capsule">
+      <img src="${imageUrl}" alt="Capsule">
       <div class="name">Capsule</div>
     </div>
     <div class="card">

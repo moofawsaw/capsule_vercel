@@ -15,6 +15,13 @@ function isUUID(str: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
 }
 
+const META_ASSET_VERSION = (process.env.META_ASSET_VERSION ?? '20260315').trim();
+
+function withAssetVersion(url: string): string {
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}v=${encodeURIComponent(META_ASSET_VERSION)}`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   
@@ -54,6 +61,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Use short code for page URL, but UUID for deep links (app needs UUID)
     const pageUrl = `https://share.capapp.co/${shareCode}`;
     const deepLinkId = actualStoryId; // Deep links use UUID
+    const faviconUrl = withAssetVersion('https://share.capapp.co/favicon.ico');
+    const favicon32Url = withAssetVersion('https://share.capapp.co/favicon-32x32.png');
+    const favicon16Url = withAssetVersion('https://share.capapp.co/favicon-16x16.png');
+    const appleTouchIconUrl = withAssetVersion('https://share.capapp.co/apple-touch-icon.png');
 
     // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
@@ -81,11 +92,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <title>${title}</title>
 
   <!-- Favicon -->
-  <link rel="icon" href="https://share.capapp.co/favicon.ico" sizes="any">
-  <link rel="shortcut icon" href="https://share.capapp.co/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://share.capapp.co/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://share.capapp.co/favicon-16x16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="https://share.capapp.co/apple-touch-icon.png">
+  <link rel="icon" href="${faviconUrl}" sizes="any">
+  <link rel="shortcut icon" href="${faviconUrl}">
+  <link rel="icon" type="image/png" sizes="32x32" href="${favicon32Url}">
+  <link rel="icon" type="image/png" sizes="16x16" href="${favicon16Url}">
+  <link rel="apple-touch-icon" sizes="180x180" href="${appleTouchIconUrl}">
   
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="${title}">
