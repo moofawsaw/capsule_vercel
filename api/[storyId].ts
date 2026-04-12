@@ -140,17 +140,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       text-align: center;
     }
     .container { padding: 20px; }
-    .opening {
-      font-size: 20px;
-      font-weight: 600;
-      letter-spacing: 0.2px;
-      opacity: 0.96;
-    }
-    .opening-sub {
-      margin-top: 10px;
-      font-size: 14px;
-      opacity: 0.86;
-    }
     .card {
       max-width: 420px;
       margin: 0 auto;
@@ -158,9 +147,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       border-radius: 16px;
       background: rgba(0, 0, 0, 0.18);
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
-    }
-    .hidden {
-      display: none;
     }
     h1 {
       margin: 0 0 8px;
@@ -203,11 +189,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </head>
 <body>
   <div class="container">
-    <div id="openingState">
-      <div class="opening">Opening in Capsule...</div>
-      <div class="opening-sub">If nothing happens, we will show options.</div>
-    </div>
-    <div id="fallbackCard" class="card hidden">
+    <div class="card">
       <h1>${title}</h1>
       <p>${description}</p>
       <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
@@ -216,65 +198,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </div>
   <script>
     (function() {
-      var deepLink = ${JSON.stringify(appDeepLink)};
       var iosStore = ${JSON.stringify(IOS_APP_STORE)};
       var androidStore = ${JSON.stringify(ANDROID_PLAY_STORE)};
       var ua = navigator.userAgent || '';
       var isAndroid = /Android/i.test(ua);
-      var isIOS = /iPhone|iPad|iPod/i.test(ua);
       var storeUrl = isAndroid ? androidStore : iosStore;
-      var openingState = document.getElementById('openingState');
-      var fallbackCard = document.getElementById('fallbackCard');
 
       var storeBtn = document.getElementById('storeBtn');
       if (storeBtn) {
         storeBtn.setAttribute('href', storeUrl);
-      }
-
-      var didBackground = false;
-      function markBackgrounded() {
-        didBackground = true;
-      }
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'hidden') {
-          markBackgrounded();
-        }
-      });
-      window.addEventListener('pagehide', markBackgrounded);
-      window.addEventListener('blur', markBackgrounded);
-
-      function showFallbackCard() {
-        if (openingState) openingState.classList.add('hidden');
-        if (fallbackCard) fallbackCard.classList.remove('hidden');
-      }
-
-      function attemptOpenIntoApp() {
-        didBackground = false;
-        window.location.href = deepLink;
-      }
-
-      // Automatic app-open attempt first; only show web UI if app did not open.
-      attemptOpenIntoApp();
-      setTimeout(function() {
-        if (!didBackground && document.visibilityState === 'visible') {
-          showFallbackCard();
-        }
-      }, 1400);
-
-      var openAppBtn = document.getElementById('openAppBtn');
-      if (openAppBtn) {
-        openAppBtn.addEventListener('click', function(e) {
-          // Manual retry: keep this user-initiated for strict iOS contexts.
-          e.preventDefault();
-          attemptOpenIntoApp();
-
-          // Fallback only if the browser never backgrounded (app did not open).
-          setTimeout(function() {
-            if (!didBackground && document.visibilityState === 'visible') {
-              showFallbackCard();
-            }
-          }, 1700);
-        });
       }
     })();
   </script>
