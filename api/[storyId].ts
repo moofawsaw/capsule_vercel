@@ -22,6 +22,14 @@ function withAssetVersion(url: string): string {
   return `${url}${separator}v=${encodeURIComponent(META_ASSET_VERSION)}`;
 }
 
+function isPreviewBot(userAgent: string): boolean {
+  const ua = userAgent.trim().toLowerCase();
+  if (!ua) return false;
+  return /(bot|crawler|spider|facebookexternalhit|facebot|twitterbot|slackbot|linkedinbot|discordbot|whatsapp|telegrambot|applebot|googlebot|bingbot|duckduckbot|embedly|quora link preview|pinterest|vkshare|skimlinks|xing-contenttabreceiver)/i.test(
+    ua,
+  );
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   
@@ -72,6 +80,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const favicon32Url = withAssetVersion('https://share.capapp.co/favicon-32x32.png');
     const favicon16Url = withAssetVersion('https://share.capapp.co/favicon-16x16.png');
     const appleTouchIconUrl = withAssetVersion('https://share.capapp.co/apple-touch-icon.png');
+
+    // Universal-link-first behavior:
+    // For real users, redirect immediately to canonical capapp story URL so iOS/Android
+    // can perform native app handoff without browser JS races.
+    // Keep HTML only for preview crawlers to preserve OG cards.
+    const uaHeader = req.headers['user-agent'];
+    const userAgent = Array.isArray(uaHeader)
+      ? uaHeader.join(' ')
+      : (uaHeader ?? '');
+    if (!isPreviewBot(userAgent)) {
+      res.setHeader('Cache-Control', 'no-store');
+      return res.redirect(302, webFallbackUrl);
+    }
 
     // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
