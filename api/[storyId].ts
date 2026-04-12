@@ -61,6 +61,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Use short code for page URL, but UUID for deep links (app needs UUID)
     const pageUrl = `https://share.capapp.co/${shareCode}`;
     const deepLinkId = actualStoryId; // Deep links use UUID
+    const appDeepLink = `capsule://story/${deepLinkId}`;
+    const webFallbackUrl = `https://capapp.co/story/${deepLinkId}`;
+    const IOS_APP_STORE =
+      'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
+    const IOS_APP_STORE_ID = '6758107085';
+    const ANDROID_PLAY_STORE =
+      'https://play.google.com/store/apps/details?id=com.capsule.app';
     const faviconUrl = withAssetVersion('https://share.capapp.co/favicon.ico');
     const favicon32Url = withAssetVersion('https://share.capapp.co/favicon-32x32.png');
     const favicon16Url = withAssetVersion('https://share.capapp.co/favicon-16x16.png');
@@ -115,10 +122,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <!-- App Deep Link Meta Tags (use UUID for app deep links) -->
   <meta property="al:ios:app_store_id" content="6758107085">
   <meta property="al:ios:app_name" content="Capsule">
-  <meta property="al:ios:url" content="capsule://story/${deepLinkId}">
+  <meta property="al:ios:url" content="${appDeepLink}">
   <meta property="al:android:package" content="com.capsule.app">
   <meta property="al:android:app_name" content="Capsule">
-  <meta property="al:android:url" content="capsule://story/${deepLinkId}">
+  <meta property="al:android:url" content="${appDeepLink}">
+  <meta name="apple-itunes-app" content="app-id=${IOS_APP_STORE_ID}, app-argument=${appDeepLink}">
   
   <style>
     body {
@@ -133,42 +141,94 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       text-align: center;
     }
     .container { padding: 20px; }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
+    .card {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 24px;
+      border-radius: 16px;
+      background: rgba(0, 0, 0, 0.18);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    a {
-      color: white;
-      text-decoration: underline;
+    h1 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      line-height: 1.2;
+    }
+    p {
+      margin: 0 0 16px;
+      opacity: 0.95;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      box-sizing: border-box;
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
       margin-top: 10px;
+    }
+    .btn-primary {
+      background: #ffffff;
+      color: #222222;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.22);
+      color: white;
+    }
+    .link {
+      color: white;
+      opacity: 0.9;
+      text-decoration: underline;
       display: inline-block;
+      margin-top: 14px;
     }
   </style>
-  
-  <script>
-    // Try to open in app first
-    const deepLink = "capsule://story/${deepLinkId}";
-    const webFallback = "https://capapp.co/story/${deepLinkId}";
-    
-    window.location.href = deepLink;
-    
-    setTimeout(() => {
-      window.location.href = webFallback;
-    }, 2000);
-  </script>
 </head>
 <body>
   <div class="container">
-    <div class="spinner"></div>
-    <p>Opening in Capsule...</p>
-    <a href="https://capapp.co/story/${deepLinkId}">Open in browser</a>
+    <div class="card">
+      <h1>${title}</h1>
+      <p>${description}</p>
+      <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
+      <a id="storeBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">Download Capsule</a>
+      <a class="link" href="${webFallbackUrl}">Continue in browser</a>
+    </div>
   </div>
+  <script>
+    (function() {
+      var deepLink = ${JSON.stringify(appDeepLink)};
+      var iosStore = ${JSON.stringify(IOS_APP_STORE)};
+      var androidStore = ${JSON.stringify(ANDROID_PLAY_STORE)};
+      var ua = navigator.userAgent || '';
+      var isAndroid = /Android/i.test(ua);
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var storeUrl = isAndroid ? androidStore : iosStore;
+
+      var storeBtn = document.getElementById('storeBtn');
+      if (storeBtn) {
+        storeBtn.setAttribute('href', storeUrl);
+      }
+
+      var openAppBtn = document.getElementById('openAppBtn');
+      if (openAppBtn) {
+        openAppBtn.addEventListener('click', function() {
+          // Only attempt custom scheme on explicit user gesture (required for iOS reliability).
+          var startedAt = Date.now();
+          window.location.href = deepLink;
+          setTimeout(function() {
+            // If app did not open, send user to platform store.
+            if (Date.now() - startedAt < 2200) {
+              window.location.href = storeUrl;
+            }
+          }, 1500);
+        });
+      }
+    })();
+  </script>
 </body>
 </html>`;
 
