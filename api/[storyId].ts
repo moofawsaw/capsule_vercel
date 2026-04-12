@@ -213,18 +213,32 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         storeBtn.setAttribute('href', storeUrl);
       }
 
+      var didBackground = false;
+      function markBackgrounded() {
+        didBackground = true;
+      }
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') {
+          markBackgrounded();
+        }
+      });
+      window.addEventListener('pagehide', markBackgrounded);
+      window.addEventListener('blur', markBackgrounded);
+
       var openAppBtn = document.getElementById('openAppBtn');
       if (openAppBtn) {
-        openAppBtn.addEventListener('click', function() {
-          // Only attempt custom scheme on explicit user gesture (required for iOS reliability).
-          var startedAt = Date.now();
+        openAppBtn.addEventListener('click', function(e) {
+          // Keep this fully user-initiated for iOS.
+          e.preventDefault();
+          didBackground = false;
           window.location.href = deepLink;
+
+          // Fallback only if the browser never backgrounded (app did not open).
           setTimeout(function() {
-            // If app did not open, send user to platform store.
-            if (Date.now() - startedAt < 2200) {
+            if (!didBackground && document.visibilityState === 'visible') {
               window.location.href = storeUrl;
             }
-          }, 1500);
+          }, 1700);
         });
       }
     })();
