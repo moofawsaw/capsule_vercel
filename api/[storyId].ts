@@ -64,7 +64,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const appDeepLink = `capsule://story/${deepLinkId}`;
     const IOS_APP_STORE =
       'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
-    const IOS_APP_STORE_ID = '6758107085';
     const ANDROID_PLAY_STORE =
       'https://play.google.com/store/apps/details?id=com.capsule.app';
     const faviconUrl = withAssetVersion('https://share.capapp.co/favicon.ico');
@@ -117,15 +116,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
-  
-  <!-- App Deep Link Meta Tags (use UUID for app deep links) -->
-  <meta property="al:ios:app_store_id" content="6758107085">
-  <meta property="al:ios:app_name" content="Capsule">
-  <meta property="al:ios:url" content="${appDeepLink}">
-  <meta property="al:android:package" content="com.capsule.app">
-  <meta property="al:android:app_name" content="Capsule">
-  <meta property="al:android:url" content="${appDeepLink}">
-  <meta name="apple-itunes-app" content="app-id=${IOS_APP_STORE_ID}, app-argument=${appDeepLink}">
   
   <style>
     body {
