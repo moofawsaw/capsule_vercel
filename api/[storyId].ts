@@ -62,7 +62,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const pageUrl = `https://share.capapp.co/${shareCode}`;
     const deepLinkId = actualStoryId; // Deep links use UUID
     const appDeepLink = `capsule://story/${deepLinkId}`;
-    const webFallbackUrl = `https://capapp.co/story/${deepLinkId}`;
     const IOS_APP_STORE =
       'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
     const IOS_APP_STORE_ID = '6758107085';
@@ -213,7 +212,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <p>${description}</p>
       <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
       <a id="storeBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">Download Capsule</a>
-      <a class="link" href="${webFallbackUrl}">Continue in browser</a>
     </div>
   </div>
   <script>
@@ -284,7 +282,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </html>`;
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
+    // Avoid stale edge/browser behavior while debugging app-open handoff issues.
+    res.setHeader('Cache-Control', 'no-store');
     return res.status(200).send(html);
     
   } catch (error) {
