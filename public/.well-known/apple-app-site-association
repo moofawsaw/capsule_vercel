@@ -4,7 +4,10 @@
     "details": [
       {
         "appID": "X6CZ58NG2P.com.capapp.capsule",
-        "paths": ["/*"]
+        "paths": [
+          "/u/*",
+          "/join/*"
+        ]
       }
     ]
   },
