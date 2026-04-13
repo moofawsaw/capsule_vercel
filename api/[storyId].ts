@@ -172,6 +172,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     imageUrl = toAbsoluteStoryMediaUrl(imageUrl) || "https://capapp.co/og-default.png";
     videoUrl = videoUrl ? toAbsoluteStoryMediaUrl(videoUrl) : null;
+    const socialImageUrl =
+      `https://share.capapp.co/api/og-image?url=${encodeURIComponent(imageUrl)}`;
 
     // Use short code for page URL, but UUID for deep links (app needs UUID)
     // Keep canonical preview URL on the universal-link-owned route.
@@ -287,8 +289,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="${escapedSocialTitle}">
   <meta property="og:description" content="${escapedSocialDescription}">
-  <meta property="og:image" content="${imageUrl}">
-  <meta property="og:image:secure_url" content="${imageUrl}">
+  <meta property="og:image" content="${socialImageUrl}">
+  <meta property="og:image:secure_url" content="${socialImageUrl}">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -303,7 +305,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ${twitterCardTags}
   <meta name="twitter:title" content="${escapedSocialTitle}">
   <meta name="twitter:description" content="${escapedSocialDescription}">
-  <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:image" content="${socialImageUrl}">
   <meta name="twitter:url" content="${pageUrl}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
