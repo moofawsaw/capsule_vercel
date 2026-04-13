@@ -306,11 +306,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       display: flex;
       flex-direction: column;
     }
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
     .brand {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 12px;
     }
     .brand-logo {
       height: 34px;
@@ -326,13 +331,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .creator {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 10px;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      background: rgba(15, 23, 42, 0.52);
+      border: 1px solid rgba(255,255,255,0.10);
     }
     .creator .avatar {
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: 999px;
       background: #2a3144;
       border: 1px solid rgba(255,255,255,0.25);
@@ -351,23 +359,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .creator .meta {
       min-width: 0;
+      flex: 1;
     }
     .creator .name {
-      font-size: 30px;
-      line-height: 1.15;
+      font-size: 20px;
+      line-height: 1.2;
       font-weight: 800;
       margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .creator .handle {
       color: var(--muted);
-      font-size: 16px;
-      line-height: 1.1;
+      font-size: 14px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .memory-title {
+      font-size: 19px;
+      font-weight: 700;
+      line-height: 1.25;
+      margin: 0;
+      text-align: left;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     .subtitle {
-      text-align: center;
+      text-align: left;
       color: #cbd5e1;
-      font-size: 16px;
-      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.35;
+      margin: 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     .card {
       display: flex;
@@ -428,17 +460,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         padding-top: 12px;
         padding-bottom: 12px;
       }
-      .brand {
-        margin-bottom: 8px;
+      .header {
+        gap: 8px;
       }
       .brand-logo {
         height: 30px;
       }
-      .creator {
-        margin-bottom: 6px;
+      .creator .avatar {
+        width: 40px;
+        height: 40px;
+      }
+      .creator .name {
+        font-size: 18px;
+      }
+      .memory-title {
+        font-size: 17px;
       }
       .subtitle {
-        margin-bottom: 8px;
+        font-size: 13px;
       }
       .media {
         max-height: 44dvh;
@@ -518,22 +557,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </head>
 <body>
   <div class="wrap">
-    <div class="brand">
-      <img class="brand-logo brand-logo--dark" src="${headerDarkLogoUrl}" alt="Capsule">
-      <img class="brand-logo brand-logo--light" src="${headerLightLogoUrl}" alt="Capsule">
-    </div>
-    <div class="creator">
-      <div class="avatar">
-        ${presenterAvatarUrl
-          ? `<img src="${escapeHtml(presenterAvatarUrl)}" alt="${presenterName}" onerror="this.style.display='none'; this.parentNode.textContent='${presenterNameRaw[0] ? escapeHtml(presenterNameRaw[0]!.toUpperCase()) : 'C'}';">`
-          : `${presenterNameRaw[0] ? escapeHtml(presenterNameRaw[0]!.toUpperCase()) : 'C'}`}
+    <div class="header">
+      <div class="brand">
+        <img class="brand-logo brand-logo--dark" src="${headerDarkLogoUrl}" alt="Capsule">
+        <img class="brand-logo brand-logo--light" src="${headerLightLogoUrl}" alt="Capsule">
       </div>
-      <div class="meta">
-        <div class="name">${presenterName}</div>
-        <div class="handle">${presenterHandle}</div>
+      <div class="creator">
+        <div class="avatar">
+          ${presenterAvatarUrl
+            ? `<img src="${escapeHtml(presenterAvatarUrl)}" alt="${presenterName}" onerror="this.style.display='none'; this.parentNode.textContent='${presenterNameRaw[0] ? escapeHtml(presenterNameRaw[0]!.toUpperCase()) : 'C'}';">`
+            : `${presenterNameRaw[0] ? escapeHtml(presenterNameRaw[0]!.toUpperCase()) : 'C'}`}
+        </div>
+        <div class="meta">
+          <div class="name">${presenterName}</div>
+          <div class="handle">${presenterHandle}</div>
+        </div>
       </div>
+      <h1 class="memory-title">${escapedTitle}</h1>
+      <div class="subtitle">${subtitleText}</div>
     </div>
-    <div class="subtitle">${subtitleText}</div>
     <div class="card">
       <div class="media">
         ${isVideo && videoUrl ? `
