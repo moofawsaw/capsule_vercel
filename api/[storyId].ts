@@ -90,6 +90,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const canonicalToken = encodeURIComponent(String(shareCode).trim() || normalizedStoryId);
     const pageUrl = `https://share.capapp.co/u/${canonicalToken}`;
     const deepLinkId = actualStoryId; // Deep links use UUID
+    const capappStoryUrl = isUUID(String(actualStoryId))
+      ? `https://capapp.co/story/${actualStoryId}`
+      : '';
     const appDeepLink = `capsule://story/${deepLinkId}`;
     const IOS_APP_STORE =
       'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
@@ -126,6 +129,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <title>${title}</title>
   <meta name="description" content="${description}">
   <link rel="canonical" href="${pageUrl}">
+  ${capappStoryUrl ? `<meta property="al:web:url" content="${capappStoryUrl}">` : ''}
 
   <!-- Favicon -->
   <link rel="icon" href="${faviconUrl}" sizes="any">
@@ -222,6 +226,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <h1>${title}</h1>
       <p>${description}</p>
       <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
+      ${capappStoryUrl ? `<a class="link" href="${capappStoryUrl}">View on web</a>` : ''}
       <a id="storeBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">Download Capsule</a>
     </div>
   </div>
