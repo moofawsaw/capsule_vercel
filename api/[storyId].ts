@@ -279,11 +279,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ${videoDuration ? `<meta property="og:video:duration" content="${videoDuration}">` : ''}` : `
   <meta property="og:type" content="website">`;
 
-    // Always use summary_large_image for X/Twitter. `player` cards require
-    // stricter platform allow-listing and can cause click-through to open the
-    // raw media URL inside the in-app viewer instead of the share page URL.
+    // Use `summary` for video stories because portrait video thumbnails are often
+    // suppressed by X with `summary_large_image`. Keep large cards for images.
+    // We intentionally avoid `player` cards to prevent click-through to raw media.
     const twitterCardTags = `
-  <meta name="twitter:card" content="summary_large_image">`;
+  <meta name="twitter:card" content="${isVideo ? 'summary' : 'summary_large_image'}">`;
     const appLinksMetaTags = `
   <meta property="al:ios:url" content="${escapeHtml(appDeepLink)}">
   <meta property="al:ios:app_store_id" content="${IOS_APP_STORE_ID}">
