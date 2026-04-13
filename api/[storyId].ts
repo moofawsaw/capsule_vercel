@@ -292,7 +292,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="al:android:url" content="${escapeHtml(appDeepLink)}">
   <meta property="al:android:package" content="${ANDROID_PACKAGE}">
   <meta property="al:android:app_name" content="${ANDROID_APP_NAME}">
-  <meta property="al:web:url" content="${escapeHtml(webFallbackUrl)}">
+  <meta property="al:web:url" content="${pageUrl}">
   <meta property="al:web:should_fallback" content="true">`;
 
     const html = `<!DOCTYPE html>
@@ -615,6 +615,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   </style>
 </head>
 <body>
+  <!-- Keep canonical capapp story URL in markup for legacy Android resolvers,
+       without using it as the App Links web click target. -->
+  <a href="${webFallbackUrl}" style="display:none" aria-hidden="true" tabindex="-1">Open Capsule story</a>
   <div class="wrap">
     <div class="header">
       <div class="brand">
