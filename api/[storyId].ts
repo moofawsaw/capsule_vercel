@@ -107,6 +107,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       typeof videoDuration === 'number' && Number.isFinite(videoDuration) && videoDuration > 0
         ? `${Math.max(1, Math.round(videoDuration))}s`
         : '';
+    const presenterNameRaw =
+      String(title).replace(/['’]s Story$/i, '').trim() || 'Capsule User';
+    const presenterName = escapeHtml(presenterNameRaw);
+    const presenterHandle = escapeHtml(
+      `@${(presenterNameRaw.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'capsule')}`,
+    );
+    const subtitleText = escapeHtml(
+      String(description).replace(/\s+on Capsule$/i, '').trim() || 'Shared from Capsule',
+    );
 
     // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
@@ -166,174 +175,211 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   <style>
     :root {
-      --bg: #0c0d13;
-      --text: #F8FAFC;
-      --muted: #A8B3C7;
-      --card-bg: rgba(255, 255, 255, 0.06);
-      --media-bg: rgba(255, 255, 255, 0.08);
-      --primary: #FFFFFF;
-      --primary-text: #111827;
-      --secondary: rgba(255, 255, 255, 0.20);
-      --secondary-text: #FFFFFF;
-      --line: rgba(255, 255, 255, 0.14);
+      --bg: #0b0d14;
+      --text: #f8fafc;
+      --muted: #9ca3af;
+      --line: rgba(255,255,255,0.14);
+      --panel: #10141f;
+      --cta: #b794ff;
+      --cta-text: #151622;
+      --store: #0c0f18;
     }
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg: #F8FAFC;
-        --text: #0F172A;
-        --muted: #475569;
-        --card-bg: #FFFFFF;
-        --media-bg: #EEF2FF;
-        --primary: #111827;
-        --primary-text: #FFFFFF;
-        --secondary: #E2E8F0;
-        --secondary-text: #111827;
-        --line: #E2E8F0;
-      }
-    }
-    html { color-scheme: light dark; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       min-height: 100vh;
-      background:
-        radial-gradient(1200px 680px at 20% -10%, rgba(138, 92, 246, 0.30), transparent 62%),
-        radial-gradient(980px 620px at 85% 120%, rgba(59, 130, 246, 0.28), transparent 58%),
-        var(--bg);
+      background: linear-gradient(180deg, #0b0d14 0%, #0d1020 100%);
       color: var(--text);
     }
     .wrap {
-      max-width: 540px;
+      max-width: 560px;
       margin: 0 auto;
-      padding: 22px 16px 28px;
+      padding: 24px 14px 28px;
     }
     .brand {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .brand img {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+    }
+    .brand .wordmark {
+      font-size: 58px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0.3px;
+      text-transform: lowercase;
+      color: #b794ff;
+      transform: scale(0.34);
+      transform-origin: center;
+      margin: -18px 0 -20px;
+    }
+    .creator {
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      margin: 2px 0 14px;
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 700;
-      letter-spacing: 0.2px;
+      margin-bottom: 10px;
     }
-    .brand img {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      display: block;
-    }
-    .card {
-      border-radius: 18px;
-      background: var(--card-bg);
-      border: 1px solid var(--line);
-      box-shadow: 0 16px 40px rgba(2, 8, 23, 0.28);
+    .creator .avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: #2a3144;
+      border: 1px solid rgba(255,255,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
       overflow: hidden;
-      backdrop-filter: blur(8px);
+    }
+    .creator .meta {
+      min-width: 0;
+    }
+    .creator .name {
+      font-size: 37px;
+      line-height: 1;
+      font-weight: 800;
+      margin-bottom: 2px;
+      transform: scale(0.35);
+      transform-origin: left center;
+      margin-right: -120px;
+      white-space: nowrap;
+    }
+    .creator .handle {
+      color: var(--muted);
+      font-size: 32px;
+      line-height: 1;
+      transform: scale(0.35);
+      transform-origin: left center;
+      margin-right: -100px;
+      white-space: nowrap;
+    }
+    .subtitle {
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 33px;
+      transform: scale(0.35);
+      transform-origin: center;
+      margin: -8px 0 6px;
+      white-space: nowrap;
     }
     .media {
       position: relative;
-      aspect-ratio: 16 / 9;
-      background: var(--media-bg);
+      border-radius: 14px;
+      background: #111827;
       overflow: hidden;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.35);
     }
-    .media img {
+    .media video, .media img {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
       display: block;
     }
-    .media::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(2, 6, 23, 0.40), rgba(2, 6, 23, 0.04));
-      pointer-events: none;
-    }
-    .pill {
-      position: absolute;
-      z-index: 2;
-      top: 10px;
-      right: 10px;
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #F8FAFC;
-      background: rgba(15, 23, 42, 0.60);
-      border: 1px solid rgba(255, 255, 255, 0.26);
-      backdrop-filter: blur(2px);
-    }
-    .content {
-      padding: 16px;
-    }
-    .eyebrow {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.45px;
-      font-weight: 700;
-      color: var(--muted);
-      margin: 0 0 8px;
-    }
-    h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
-      line-height: 1.12;
-      font-weight: 800;
-      color: var(--text);
-    }
-    .desc {
-      margin: 0 0 12px;
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.45;
-    }
-    .row {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 6px 0;
-      border-top: 1px solid var(--line);
-      font-size: 13px;
-    }
-    .row .k { color: var(--muted); }
-    .row .v {
-      color: var(--text);
-      text-align: right;
-      word-break: break-word;
-      font-weight: 600;
+    .actions {
+      margin-top: 14px;
     }
     .btn {
       display: flex;
       width: 100%;
       box-sizing: border-box;
       border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 15px;
+      padding: 14px 16px;
+      font-size: 34px;
       font-weight: 800;
       text-decoration: none;
       align-items: center;
       justify-content: center;
-      margin-top: 10px;
+      margin-top: 12px;
       border: 0;
       cursor: pointer;
       min-width: 0;
+      transform: scale(0.35);
+      transform-origin: center;
+      margin-left: -88px;
+      margin-right: -88px;
+      white-space: nowrap;
     }
     .btn-primary {
-      background: var(--primary);
-      color: var(--primary-text);
+      background: var(--cta);
+      color: var(--cta-text);
     }
     .btn-secondary {
-      background: var(--secondary);
-      color: var(--secondary-text);
+      background: var(--store);
+      color: #ffffff;
+      border: 1px solid var(--line);
+      width: calc(50% - 6px);
+      margin-top: 0;
+      margin-left: 0;
+      margin-right: 0;
+      transform: scale(0.35);
+      transform-origin: center;
+    }
+    .stores {
+      display: flex;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      margin: 12px 0 2px;
+      font-size: 30px;
+      font-weight: 700;
+      justify-content: center;
+      transform: scale(0.35);
+      transform-origin: center;
+      white-space: nowrap;
+    }
+    .divider::before,
+    .divider::after {
+      content: '';
+      height: 1px;
+      width: 130px;
+      background: var(--line);
     }
     .link {
-      display: inline-block;
-      margin-top: 14px;
-      color: var(--text);
-      text-decoration: underline;
-      opacity: 0.92;
+      color: #b6bfd2;
+      text-align: center;
+      margin-top: 8px;
+      font-size: 30px;
+      transform: scale(0.35);
+      transform-origin: center;
+      white-space: nowrap;
+      display: block;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge .tri {
+      width: 0;
+      height: 0;
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-left: 12px solid #fff;
+    }
+    .badge .txt {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+      align-items: flex-start;
+      transform: translateY(0.5px);
+    }
+    .badge .txt small {
+      font-size: 9px;
+      opacity: 0.85;
+    }
+    .badge .txt b {
       font-size: 14px;
     }
   </style>
@@ -342,28 +388,49 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <div class="wrap">
     <div class="brand">
       <img src="${appleTouchIconUrl}" alt="Capsule">
-      <span>Capsule Story Share</span>
+      <span class="wordmark">capsule</span>
     </div>
+    <div class="creator">
+      <div class="avatar">${presenterNameRaw[0] ? escapeHtml(presenterNameRaw[0]!.toUpperCase()) : 'C'}</div>
+      <div class="meta">
+        <div class="name">${presenterName}</div>
+        <div class="handle">${presenterHandle}</div>
+      </div>
+    </div>
+    <div class="subtitle">${subtitleText}</div>
     <div class="card">
       <div class="media">
+        ${isVideo && videoUrl ? `
+        <video controls playsinline preload="metadata" poster="${imageUrl}" src="${videoUrl}">
+          <source src="${videoUrl}" type="video/mp4">
+        </video>
+        ` : `
         <img src="${imageUrl}" alt="${title}" loading="eager" referrerpolicy="no-referrer">
-        <div class="pill">${isVideo ? `Video${durationLabel ? ` • ${durationLabel}` : ''}` : 'Story'}</div>
+        `}
       </div>
-      <div class="content">
-        <div class="eyebrow">Story preview</div>
-        <h1>${title}</h1>
-        <p class="desc">${description}</p>
-        <div class="row">
-          <div class="k">Shared via</div>
-          <div class="v">share.capapp.co</div>
+      <div class="actions">
+        <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule App</a>
+        <div class="divider">DON'T HAVE THE APP?</div>
+        <div class="stores">
+          <a id="playStoreBtn" class="btn btn-secondary" href="${ANDROID_PLAY_STORE}">
+            <span class="badge">
+              <span class="tri"></span>
+              <span class="txt">
+                <small>Get it on</small>
+                <b>Google Play</b>
+              </span>
+            </span>
+          </a>
+          <a id="appStoreBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">
+            <span class="badge">
+              <span class="txt">
+                <small>Download on the</small>
+                <b>App Store</b>
+              </span>
+            </span>
+          </a>
         </div>
-        <div class="row">
-          <div class="k">Open on web</div>
-          <div class="v">capapp.co/story</div>
-        </div>
-        <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
-        <a id="storeBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">Download Capsule</a>
-        <a class="link" href="${webFallbackUrl}">Continue in browser</a>
+        <a class="link" href="${webFallbackUrl}">View this story and more moments in the Capsule app</a>
       </div>
     </div>
   </div>
@@ -377,9 +444,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       var isIOS = /iPhone|iPad|iPod/i.test(ua);
       var storeUrl = isAndroid ? androidStore : iosStore;
 
-      var storeBtn = document.getElementById('storeBtn');
-      if (storeBtn) {
-        storeBtn.setAttribute('href', storeUrl);
+      var appStoreBtn = document.getElementById('appStoreBtn');
+      var playStoreBtn = document.getElementById('playStoreBtn');
+      if (appStoreBtn) {
+        appStoreBtn.setAttribute('href', iosStore);
+      }
+      if (playStoreBtn) {
+        playStoreBtn.setAttribute('href', androidStore);
       }
 
       var openAppBtn = document.getElementById('openAppBtn');
