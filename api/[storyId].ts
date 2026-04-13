@@ -129,6 +129,23 @@ async function fetchStoryCreatorProfile(storyUuid: string): Promise<{
   return null;
 }
 
+function isLikelyImageUrl(input: string): boolean {
+  const value = (input ?? '').trim().toLowerCase();
+  if (!value) return false;
+  return /\.(avif|gif|jpe?g|png|webp)(?:[?#].*)?$/.test(value);
+}
+
+function extractUrlOrigin(input: string): string | null {
+  const value = (input ?? '').trim();
+  if (!value) return null;
+  try {
+    const u = new URL(value);
+    return u.origin;
+  } catch (_) {
+    return null;
+  }
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   
@@ -172,8 +189,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     imageUrl = toAbsoluteStoryMediaUrl(imageUrl) || "https://capapp.co/og-default.png";
     videoUrl = videoUrl ? toAbsoluteStoryMediaUrl(videoUrl) : null;
+    const defaultSocialImage = 'https://capapp.co/og-default.png';
+    const mediaOrigin = extractUrlOrigin(videoUrl ?? imageUrl) || '';
+    const derivedVideoThumb =
+      mediaOrigin && isUUID(String(actualStoryId))
+        ? `${mediaOrigin}/storage/v1/object/public/story-media/thumbnails/${actualStoryId}.jpg`
+        : '';
+    const selectedSocialImageSource = isLikelyImageUrl(imageUrl)
+      ? imageUrl
+      : (derivedVideoThumb || defaultSocialImage);
     const socialImageUrl =
-      `https://share.capapp.co/api/og-image?url=${encodeURIComponent(imageUrl)}`;
+      `https://share.capapp.co/api/og-image?url=${encodeURIComponent(selectedSocialImageSource)}`;
 
     // Use short code for page URL, but UUID for deep links (app needs UUID)
     // Keep canonical preview URL on the universal-link-owned route.

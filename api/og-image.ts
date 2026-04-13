@@ -15,6 +15,26 @@ function isAllowedImageHost(hostname: string): boolean {
   );
 }
 
+const DEFAULT_SOCIAL_IMAGE = 'https://capapp.co/og-default.png';
+
+async function fetchImage(sourceUrl: string): Promise<{ body: Buffer; contentType: string } | null> {
+  const upstream = await fetch(sourceUrl, {
+    redirect: 'follow',
+    headers: {
+      // Encourage image CDNs to return an image response quickly.
+      Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
+    },
+  });
+
+  if (!upstream.ok) return null;
+
+  const contentType = (upstream.headers.get('content-type') || '').toLowerCase();
+  if (!contentType.startsWith('image/')) return null;
+
+  const body = Buffer.from(await upstream.arrayBuffer());
+  return { body, contentType };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     const rawUrl = getSingleQueryParam(req.query.url);
@@ -35,32 +55,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(403).send('Host is not allowed');
     }
 
-    const upstream = await fetch(sourceUrl.toString(), {
-      redirect: 'follow',
-      headers: {
-        // Encourage image CDNs to return an image response quickly.
-        Accept: 'image/avif,image/webp,image/apng,image/*,*/*;q=0.8',
-      },
-    });
-
-    if (!upstream.ok) {
+    let payload = await fetchImage(sourceUrl.toString());
+    if (!payload) {
+      payload = await fetchImage(DEFAULT_SOCIAL_IMAGE);
+    }
+    if (!payload) {
       return res.status(502).send('Unable to fetch image');
     }
 
-    const contentType = (upstream.headers.get('content-type') || '').toLowerCase();
-    if (!contentType.startsWith('image/')) {
-      return res.status(415).send('Upstream resource is not an image');
-    }
-
-    const body = Buffer.from(await upstream.arrayBuffer());
-
-    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Type', payload.contentType);
     res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     // Avoid restrictive robots directives that can suppress social preview images.
     res.setHeader('X-Robots-Tag', 'all');
-    return res.status(200).send(body);
+    return res.status(200).send(payload.body);
   } catch (_) {
-    return res.status(500).send('Proxy error');
+    try {
+      const payload = await fetchImage(DEFAULT_SOCIAL_IMAGE);
+      if (!payload) return res.status(500).send('Proxy error');
+      res.setHeader('Content-Type', payload.contentType);
+      res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('X-Robots-Tag', 'all');
+      return res.status(200).send(payload.body);
+    } catch (_) {
+      return res.status(500).send('Proxy error');
+    }
   }
 }
