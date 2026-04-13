@@ -304,6 +304,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="description" content="${escapedSocialDescription}">
   <link rel="canonical" href="${pageUrl}">
   ${appLinksMetaTags}
+  <meta name="apple-itunes-app" content="app-id=${IOS_APP_STORE_ID}, app-argument=${escapeHtml(appDeepLink)}">
 
   <!-- Favicon -->
   <link rel="icon" href="${faviconUrl}" sizes="any">
@@ -333,6 +334,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:description" content="${escapedSocialDescription}">
   <meta name="twitter:image" content="${socialImageUrl}">
   <meta name="twitter:url" content="${pageUrl}">
+  <meta name="twitter:app:name:iphone" content="${IOS_APP_NAME}">
+  <meta name="twitter:app:id:iphone" content="${IOS_APP_STORE_ID}">
+  <meta name="twitter:app:url:iphone" content="${escapeHtml(appDeepLink)}">
+  <meta name="twitter:app:name:googleplay" content="${ANDROID_APP_NAME}">
+  <meta name="twitter:app:id:googleplay" content="${ANDROID_PACKAGE}">
+  <meta name="twitter:app:url:googleplay" content="${escapeHtml(appDeepLink)}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -688,7 +695,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       var ua = navigator.userAgent || '';
       var isAndroid = /Android/i.test(ua);
       var isIOS = /iPhone|iPad|iPod/i.test(ua);
+      var isTwitterInApp = /Twitter/i.test(ua);
       var storeUrl = isAndroid ? androidStore : iosStore;
+      var launchedViaAutoHandoff = false;
+
+      function attemptTwitterIOSAutoHandoff() {
+        if (!isIOS || !isTwitterInApp || launchedViaAutoHandoff) return;
+        launchedViaAutoHandoff = true;
+
+        var didHide = false;
+        var onVisibility = function() {
+          if (document.visibilityState === 'hidden') didHide = true;
+        };
+        document.addEventListener('visibilitychange', onVisibility, { once: false });
+        window.location.href = deepLink;
+        setTimeout(function() {
+          document.removeEventListener('visibilitychange', onVisibility);
+          if (!didHide) {
+            // Stay on the fallback page if app launch is blocked by in-app browser policy.
+          }
+        }, 1400);
+      }
 
       var appStoreBtn = document.getElementById('appStoreBtn');
       var playStoreBtn = document.getElementById('playStoreBtn');
@@ -714,6 +741,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           }, isIOS ? 1400 : 1100);
         });
       }
+
+      // X iOS in-app browser often suppresses universal link handoff; try once.
+      attemptTwitterIOSAutoHandoff();
     })();
   </script>
 </body>
