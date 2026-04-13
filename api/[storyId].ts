@@ -710,9 +710,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       var ua = navigator.userAgent || '';
       var isAndroid = /Android/i.test(ua);
       var isIOS = /iPhone|iPad|iPod/i.test(ua);
-      var isTwitterInApp = /Twitter/i.test(ua);
-      var referrer = document.referrer || '';
-      var isTwitterReferrer = /(^|\\.)t\\.co\\//i.test(referrer) || /twitter\\.com/i.test(referrer) || /x\\.com/i.test(referrer);
       var storeUrl = isAndroid ? androidStore : iosStore;
       var launchedViaAutoHandoff = false;
       var launchInFlight = false;
@@ -768,8 +765,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }, allowStoreFallback ? 1800 : 1600);
       }
 
-      function attemptIOSAutoHandoffFromTwitter() {
-        if (!isIOS || !(isTwitterInApp || isTwitterReferrer) || launchedViaAutoHandoff) return;
+      function attemptIOSAutoHandoffOnLoad() {
+        if (!isIOS || launchedViaAutoHandoff) return;
         launchedViaAutoHandoff = true;
         launchCapsuleApp({ allowStoreFallback: false });
       }
@@ -792,8 +789,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         });
       }
 
-      // X iOS in-app browser often suppresses universal link handoff; try once.
-      attemptIOSAutoHandoffFromTwitter();
+      // Auto-handoff on iOS so opening the URL attempts app-open immediately.
+      attemptIOSAutoHandoffOnLoad();
     })();
   </script>
 </body>
