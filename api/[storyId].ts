@@ -214,11 +214,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       (presenterNameRaw.toLowerCase().replace(/[^a-z0-9]+/g, '') || 'capsule');
     const presenterHandle = escapeHtml(`@${presenterHandleRaw}`);
     const presenterAvatarUrl = (creatorProfile?.avatarUrl ?? '').trim();
-    const subtitleText = escapeHtml(
-      String(description).replace(/\s+on Capsule$/i, '').trim() || 'Shared from Capsule',
+    const subtitleRaw =
+      String(description).replace(/\s+on Capsule$/i, '').trim() || 'Shared from Capsule';
+    const subtitleText = escapeHtml(subtitleRaw);
+    const clampMeta = (input: string, max: number): string => {
+      const normalized = input.trim();
+      if (normalized.length <= max) return normalized;
+      return `${normalized.slice(0, Math.max(1, max - 1)).trimEnd()}\u2026`;
+    };
+    const titleContextRaw =
+      subtitleRaw && !/^shared from capsule$/i.test(subtitleRaw)
+        ? `${presenterNameRaw} \u2022 ${subtitleRaw}`
+        : `${presenterNameRaw} shared a story`;
+    const socialTitleRaw = clampMeta(
+      `${titleContextRaw}${durationLabel ? ` (${durationLabel})` : ''}`,
+      90,
+    );
+    const socialDescriptionRaw = clampMeta(
+      isVideo
+        ? `Watch ${presenterNameRaw}'s story on Capsule${durationLabel ? ` (${durationLabel})` : ''}.`
+        : `View ${presenterNameRaw}'s story on Capsule.`,
+      170,
     );
     const escapedTitle = escapeHtml(title);
-    const escapedDescription = escapeHtml(description);
+    const escapedSocialTitle = escapeHtml(socialTitleRaw);
+    const escapedSocialDescription = escapeHtml(socialDescriptionRaw);
 
     // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
@@ -253,7 +273,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${escapedTitle}</title>
-  <meta name="description" content="${escapedDescription}">
+  <meta name="description" content="${escapedSocialDescription}">
   <link rel="canonical" href="${pageUrl}">
   ${appLinksMetaTags}
 
@@ -265,14 +285,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <link rel="apple-touch-icon" sizes="180x180" href="${appleTouchIconUrl}">
   
   <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="${escapedTitle}">
-  <meta property="og:description" content="${escapedDescription}">
+  <meta property="og:title" content="${escapedSocialTitle}">
+  <meta property="og:description" content="${escapedSocialDescription}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:image:secure_url" content="${imageUrl}">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="${escapedTitle}">
+  <meta property="og:image:alt" content="${escapedSocialTitle}">
   <meta property="og:url" content="${pageUrl}">
   ${videoMetaTags}
   <meta property="og:site_name" content="Capsule">
@@ -281,8 +301,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   <!-- Twitter Card Meta Tags -->
   ${twitterCardTags}
-  <meta name="twitter:title" content="${escapedTitle}">
-  <meta name="twitter:description" content="${escapedDescription}">
+  <meta name="twitter:title" content="${escapedSocialTitle}">
+  <meta name="twitter:description" content="${escapedSocialDescription}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:url" content="${pageUrl}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
