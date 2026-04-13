@@ -311,6 +311,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       flex-direction: column;
       gap: 10px;
       margin-bottom: 8px;
+      align-items: center;
     }
     .brand {
       display: flex;
@@ -331,12 +332,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .creator {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
+      justify-content: center;
       gap: 10px;
       padding: 10px 12px;
       border-radius: 12px;
-      background: rgba(15, 23, 42, 0.52);
-      border: 1px solid rgba(255,255,255,0.10);
+      background: transparent;
+      border: none;
     }
     .creator .avatar {
       width: 44px;
@@ -359,7 +360,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .creator .meta {
       min-width: 0;
-      flex: 1;
+      text-align: center;
     }
     .creator .name {
       font-size: 20px;
@@ -383,7 +384,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       font-weight: 700;
       line-height: 1.25;
       margin: 0;
-      text-align: left;
+      text-align: center;
       color: var(--text);
       display: -webkit-box;
       -webkit-line-clamp: 2;
@@ -391,7 +392,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       overflow: hidden;
     }
     .subtitle {
-      text-align: left;
+      text-align: center;
       color: #cbd5e1;
       font-size: 14px;
       line-height: 1.35;
