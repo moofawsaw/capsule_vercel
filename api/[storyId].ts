@@ -22,6 +22,15 @@ function withAssetVersion(url: string): string {
   return `${url}${separator}v=${encodeURIComponent(META_ASSET_VERSION)}`;
 }
 
+function decodeHtmlEntities(input: string): string {
+  return input
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
 function toAbsoluteStoryMediaUrl(rawUrl: string): string {
   const input = (rawUrl ?? '').trim();
   if (!input) return '';
@@ -72,8 +81,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     
     if (response.ok) {
       const data = await response.json();
-      if (data.title) title = escapeHtml(data.title);
-      if (data.description) description = escapeHtml(data.description);
+      if (data.title) title = decodeHtmlEntities(String(data.title).trim());
+      if (data.description) {
+        description = decodeHtmlEntities(String(data.description).trim());
+      }
       if (data.imageUrl) imageUrl = data.imageUrl;
       if (data.isVideo) isVideo = data.isVideo;
       if (data.videoUrl) videoUrl = data.videoUrl;
@@ -116,6 +127,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const subtitleText = escapeHtml(
       String(description).replace(/\s+on Capsule$/i, '').trim() || 'Shared from Capsule',
     );
+    const escapedTitle = escapeHtml(title);
+    const escapedDescription = escapeHtml(description);
 
     // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
@@ -139,8 +152,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${title}</title>
-  <meta name="description" content="${description}">
+  <title>${escapedTitle}</title>
+  <meta name="description" content="${escapedDescription}">
   <link rel="canonical" href="${pageUrl}">
   ${capappStoryUrl ? `<meta property="al:web:url" content="${capappStoryUrl}">` : ''}
 
@@ -152,14 +165,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <link rel="apple-touch-icon" sizes="180x180" href="${appleTouchIconUrl}">
   
   <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="${description}">
+  <meta property="og:title" content="${escapedTitle}">
+  <meta property="og:description" content="${escapedDescription}">
   <meta property="og:image" content="${imageUrl}">
   <meta property="og:image:secure_url" content="${imageUrl}">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="${title}">
+  <meta property="og:image:alt" content="${escapedTitle}">
   <meta property="og:url" content="${pageUrl}">
   ${videoMetaTags}
   <meta property="og:site_name" content="Capsule">
@@ -168,8 +181,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   
   <!-- Twitter Card Meta Tags -->
   ${twitterCardTags}
-  <meta name="twitter:title" content="${title}">
-  <meta name="twitter:description" content="${description}">
+  <meta name="twitter:title" content="${escapedTitle}">
+  <meta name="twitter:description" content="${escapedDescription}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:url" content="${pageUrl}">
   
@@ -179,7 +192,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       --text: #f8fafc;
       --muted: #9ca3af;
       --line: rgba(255,255,255,0.14);
-      --panel: #10141f;
       --cta: #b794ff;
       --cta-text: #151622;
       --store: #0c0f18;
@@ -192,50 +204,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       color: var(--text);
     }
     .wrap {
-      max-width: 560px;
+      max-width: 640px;
       margin: 0 auto;
-      padding: 24px 14px 28px;
+      padding: 24px 16px 28px;
     }
     .brand {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
     .brand img {
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       border-radius: 8px;
     }
     .brand .wordmark {
-      font-size: 58px;
+      font-size: 44px;
       line-height: 1;
       font-weight: 900;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.2px;
       text-transform: lowercase;
       color: #b794ff;
-      transform: scale(0.34);
-      transform-origin: center;
-      margin: -18px 0 -20px;
     }
     .creator {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      margin-bottom: 10px;
+      gap: 12px;
+      margin-bottom: 8px;
     }
     .creator .avatar {
-      width: 42px;
-      height: 42px;
+      width: 48px;
+      height: 48px;
       border-radius: 999px;
       background: #2a3144;
       border: 1px solid rgba(255,255,255,0.25);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 20px;
       font-weight: 800;
       overflow: hidden;
     }
@@ -243,32 +252,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       min-width: 0;
     }
     .creator .name {
-      font-size: 37px;
-      line-height: 1;
+      font-size: 30px;
+      line-height: 1.15;
       font-weight: 800;
       margin-bottom: 2px;
-      transform: scale(0.35);
-      transform-origin: left center;
-      margin-right: -120px;
-      white-space: nowrap;
     }
     .creator .handle {
       color: var(--muted);
-      font-size: 32px;
-      line-height: 1;
-      transform: scale(0.35);
-      transform-origin: left center;
-      margin-right: -100px;
-      white-space: nowrap;
+      font-size: 16px;
+      line-height: 1.1;
     }
     .subtitle {
       text-align: center;
       color: #cbd5e1;
-      font-size: 33px;
-      transform: scale(0.35);
-      transform-origin: center;
-      margin: -8px 0 6px;
-      white-space: nowrap;
+      font-size: 18px;
+      margin: 0 0 12px;
     }
     .media {
       position: relative;
@@ -291,7 +289,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       box-sizing: border-box;
       border-radius: 12px;
       padding: 14px 16px;
-      font-size: 34px;
+      font-size: 18px;
       font-weight: 800;
       text-decoration: none;
       align-items: center;
@@ -300,10 +298,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       border: 0;
       cursor: pointer;
       min-width: 0;
-      transform: scale(0.35);
-      transform-origin: center;
-      margin-left: -88px;
-      margin-right: -88px;
       white-space: nowrap;
     }
     .btn-primary {
@@ -318,8 +312,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       margin-top: 0;
       margin-left: 0;
       margin-right: 0;
-      transform: scale(0.35);
-      transform-origin: center;
     }
     .stores {
       display: flex;
@@ -332,12 +324,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       gap: 10px;
       color: var(--muted);
       margin: 12px 0 2px;
-      font-size: 30px;
+      font-size: 13px;
       font-weight: 700;
       justify-content: center;
-      transform: scale(0.35);
-      transform-origin: center;
-      white-space: nowrap;
+      letter-spacing: 0.7px;
     }
     .divider::before,
     .divider::after {
@@ -349,11 +339,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .link {
       color: #b6bfd2;
       text-align: center;
-      margin-top: 8px;
-      font-size: 30px;
-      transform: scale(0.35);
-      transform-origin: center;
-      white-space: nowrap;
+      margin-top: 12px;
+      font-size: 16px;
+      line-height: 1.3;
       display: block;
     }
     .badge {
@@ -373,14 +361,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       flex-direction: column;
       line-height: 1.1;
       align-items: flex-start;
-      transform: translateY(0.5px);
     }
     .badge .txt small {
-      font-size: 9px;
+      font-size: 10px;
       opacity: 0.85;
     }
     .badge .txt b {
-      font-size: 14px;
+      font-size: 15px;
     }
   </style>
 </head>
@@ -405,7 +392,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           <source src="${videoUrl}" type="video/mp4">
         </video>
         ` : `
-        <img src="${imageUrl}" alt="${title}" loading="eager" referrerpolicy="no-referrer">
+        <img src="${imageUrl}" alt="${escapedTitle}" loading="eager" referrerpolicy="no-referrer">
         `}
       </div>
       <div class="actions">
