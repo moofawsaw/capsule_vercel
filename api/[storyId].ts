@@ -103,6 +103,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const favicon32Url = withAssetVersion('https://share.capapp.co/favicon-32x32.png');
     const favicon16Url = withAssetVersion('https://share.capapp.co/favicon-16x16.png');
     const appleTouchIconUrl = withAssetVersion('https://share.capapp.co/apple-touch-icon.png');
+    const durationLabel =
+      typeof videoDuration === 'number' && Number.isFinite(videoDuration) && videoDuration > 0
+        ? `${Math.max(1, Math.round(videoDuration))}s`
+        : '';
 
     // Video-specific OG tags
     const videoMetaTags = isVideo && videoUrl ? `
@@ -161,73 +165,206 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:url" content="${pageUrl}">
   
   <style>
+    :root {
+      --bg: #0c0d13;
+      --text: #F8FAFC;
+      --muted: #A8B3C7;
+      --card-bg: rgba(255, 255, 255, 0.06);
+      --media-bg: rgba(255, 255, 255, 0.08);
+      --primary: #FFFFFF;
+      --primary-text: #111827;
+      --secondary: rgba(255, 255, 255, 0.20);
+      --secondary-text: #FFFFFF;
+      --line: rgba(255, 255, 255, 0.14);
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #F8FAFC;
+        --text: #0F172A;
+        --muted: #475569;
+        --card-bg: #FFFFFF;
+        --media-bg: #EEF2FF;
+        --primary: #111827;
+        --primary-text: #FFFFFF;
+        --secondary: #E2E8F0;
+        --secondary-text: #111827;
+        --line: #E2E8F0;
+      }
+    }
+    html { color-scheme: light dark; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-      text-align: center;
+      min-height: 100vh;
+      background:
+        radial-gradient(1200px 680px at 20% -10%, rgba(138, 92, 246, 0.30), transparent 62%),
+        radial-gradient(980px 620px at 85% 120%, rgba(59, 130, 246, 0.28), transparent 58%),
+        var(--bg);
+      color: var(--text);
     }
-    .container { padding: 20px; }
-    .card {
-      max-width: 420px;
+    .wrap {
+      max-width: 540px;
       margin: 0 auto;
-      padding: 24px;
-      border-radius: 16px;
-      background: rgba(0, 0, 0, 0.18);
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+      padding: 22px 16px 28px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin: 2px 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+    .brand img {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: block;
+    }
+    .card {
+      border-radius: 18px;
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 40px rgba(2, 8, 23, 0.28);
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+    }
+    .media {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: var(--media-bg);
+      overflow: hidden;
+    }
+    .media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .media::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(2, 6, 23, 0.40), rgba(2, 6, 23, 0.04));
+      pointer-events: none;
+    }
+    .pill {
+      position: absolute;
+      z-index: 2;
+      top: 10px;
+      right: 10px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #F8FAFC;
+      background: rgba(15, 23, 42, 0.60);
+      border: 1px solid rgba(255, 255, 255, 0.26);
+      backdrop-filter: blur(2px);
+    }
+    .content {
+      padding: 16px;
+    }
+    .eyebrow {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.45px;
+      font-weight: 700;
+      color: var(--muted);
+      margin: 0 0 8px;
     }
     h1 {
       margin: 0 0 8px;
-      font-size: 22px;
-      line-height: 1.2;
+      font-size: 24px;
+      line-height: 1.12;
+      font-weight: 800;
+      color: var(--text);
     }
-    p {
-      margin: 0 0 16px;
-      opacity: 0.95;
+    .desc {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .row .k { color: var(--muted); }
+    .row .v {
+      color: var(--text);
+      text-align: right;
+      word-break: break-word;
+      font-weight: 600;
     }
     .btn {
-      display: block;
+      display: flex;
       width: 100%;
       box-sizing: border-box;
-      border: 0;
       border-radius: 12px;
       padding: 12px 14px;
       font-size: 15px;
-      font-weight: 700;
+      font-weight: 800;
       text-decoration: none;
-      cursor: pointer;
+      align-items: center;
+      justify-content: center;
       margin-top: 10px;
+      border: 0;
+      cursor: pointer;
+      min-width: 0;
     }
     .btn-primary {
-      background: #ffffff;
-      color: #222222;
+      background: var(--primary);
+      color: var(--primary-text);
     }
     .btn-secondary {
-      background: rgba(255, 255, 255, 0.22);
-      color: white;
+      background: var(--secondary);
+      color: var(--secondary-text);
     }
     .link {
-      color: white;
-      opacity: 0.9;
-      text-decoration: underline;
       display: inline-block;
       margin-top: 14px;
+      color: var(--text);
+      text-decoration: underline;
+      opacity: 0.92;
+      font-size: 14px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
+  <div class="wrap">
+    <div class="brand">
+      <img src="${appleTouchIconUrl}" alt="Capsule">
+      <span>Capsule Story Share</span>
+    </div>
     <div class="card">
-      <h1>${title}</h1>
-      <p>${description}</p>
-      <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
-      <a id="storeBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">Download Capsule</a>
-      <a class="link" href="${webFallbackUrl}">Continue in browser</a>
+      <div class="media">
+        <img src="${imageUrl}" alt="${title}" loading="eager" referrerpolicy="no-referrer">
+        <div class="pill">${isVideo ? `Video${durationLabel ? ` • ${durationLabel}` : ''}` : 'Story'}</div>
+      </div>
+      <div class="content">
+        <div class="eyebrow">Story preview</div>
+        <h1>${title}</h1>
+        <p class="desc">${description}</p>
+        <div class="row">
+          <div class="k">Shared via</div>
+          <div class="v">share.capapp.co</div>
+        </div>
+        <div class="row">
+          <div class="k">Open on web</div>
+          <div class="v">capapp.co/story</div>
+        </div>
+        <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
+        <a id="storeBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">Download Capsule</a>
+        <a class="link" href="${webFallbackUrl}">Continue in browser</a>
+      </div>
     </div>
   </div>
   <script>
