@@ -22,6 +22,27 @@ function withAssetVersion(url: string): string {
   return `${url}${separator}v=${encodeURIComponent(META_ASSET_VERSION)}`;
 }
 
+function toAbsoluteStoryMediaUrl(rawUrl: string): string {
+  const input = (rawUrl ?? '').trim();
+  if (!input) return '';
+  if (input.startsWith('http://') || input.startsWith('https://')) {
+    return input;
+  }
+
+  const normalized = input
+    .replace(/^\/+/, '')
+    .replace(/^story-media\//, '');
+  if (!normalized) return '';
+
+  const encodedPath = normalized
+    .split('/')
+    .filter((segment) => segment.trim().length > 0)
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+
+  return `https://resdvutqgrbbylknaxjp.supabase.co/storage/v1/object/public/story-media/${encodedPath}`;
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   
@@ -31,7 +52,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // Detect if it's a UUID or short code and build the appropriate query param
-    const queryParam = isUUID(storyId) ? `storyId=${storyId}` : `code=${storyId}`;
+    const normalizedStoryId = String(storyId).trim();
+    const queryParam = isUUID(normalizedStoryId)
+      ? `storyId=${encodeURIComponent(normalizedStoryId)}`
+      : `code=${encodeURIComponent(normalizedStoryId)}`;
     
     const response = await fetch(
       `https://resdvutqgrbbylknaxjp.supabase.co/functions/v1/story-meta?${queryParam}&format=json`
@@ -43,8 +67,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let videoUrl: string | null = null;
     let isVideo = false;
     let videoDuration: number | null = null;
-    let actualStoryId = storyId; // Will be updated with real UUID from response
-    let shareCode = storyId; // Will be updated with short code from response
+    let actualStoryId = normalizedStoryId; // Will be updated with real UUID from response
+    let shareCode = normalizedStoryId; // Will be updated with short code from response
     
     if (response.ok) {
       const data = await response.json();
@@ -58,9 +82,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (data.shareCode) shareCode = data.shareCode; // Get short code for URLs
     }
 
+    imageUrl = toAbsoluteStoryMediaUrl(imageUrl) || "https://capapp.co/og-default.png";
+    videoUrl = videoUrl ? toAbsoluteStoryMediaUrl(videoUrl) : null;
+
     // Use short code for page URL, but UUID for deep links (app needs UUID)
     // Keep canonical preview URL on the universal-link-owned route.
-    const pageUrl = `https://share.capapp.co/u/${shareCode}`;
+    const canonicalToken = encodeURIComponent(String(shareCode).trim() || normalizedStoryId);
+    const pageUrl = `https://share.capapp.co/u/${canonicalToken}`;
     const deepLinkId = actualStoryId; // Deep links use UUID
     const appDeepLink = `capsule://story/${deepLinkId}`;
     const IOS_APP_STORE =
@@ -96,6 +124,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>${title}</title>
+  <meta name="description" content="${description}">
+  <link rel="canonical" href="${pageUrl}">
 
   <!-- Favicon -->
   <link rel="icon" href="${faviconUrl}" sizes="any">
@@ -108,15 +138,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
   <meta property="og:image" content="${imageUrl}">
+  <meta property="og:image:secure_url" content="${imageUrl}">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="${title}">
   <meta property="og:url" content="${pageUrl}">
   ${videoMetaTags}
   <meta property="og:site_name" content="Capsule">
+  <meta property="og:locale" content="en_US">
+  ${process.env.FACEBOOK_APP_ID ? `<meta property="fb:app_id" content="${escapeHtml(process.env.FACEBOOK_APP_ID)}">` : ''}
   
   <!-- Twitter Card Meta Tags -->
   ${twitterCardTags}
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
   <meta name="twitter:image" content="${imageUrl}">
+  <meta name="twitter:url" content="${pageUrl}">
   
   <style>
     body {
