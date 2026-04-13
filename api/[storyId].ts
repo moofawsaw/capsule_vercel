@@ -517,13 +517,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       font-size: 12px;
       font-weight: 700;
       justify-content: center;
+      text-align: center;
+      width: 100%;
       letter-spacing: 0.7px;
     }
     .divider::before,
     .divider::after {
       content: '';
       height: 1px;
-      width: 130px;
+      flex: 1;
+      max-width: 130px;
       background: var(--line);
     }
     .badge {
