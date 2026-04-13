@@ -59,7 +59,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Use short code for page URL, but UUID for deep links (app needs UUID)
-    const pageUrl = `https://share.capapp.co/${shareCode}`;
+    // Keep canonical preview URL on the universal-link-owned route.
+    const pageUrl = `https://share.capapp.co/u/${shareCode}`;
     const deepLinkId = actualStoryId; // Deep links use UUID
     const appDeepLink = `capsule://story/${deepLinkId}`;
     const IOS_APP_STORE =
