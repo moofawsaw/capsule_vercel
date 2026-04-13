@@ -444,12 +444,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       align-items: center;
       gap: 8px;
     }
-    .badge .tri {
-      width: 0;
-      height: 0;
-      border-top: 8px solid transparent;
-      border-bottom: 8px solid transparent;
-      border-left: 12px solid #fff;
+    .badge-icon {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+      display: block;
+    }
+    .badge-icon--apple {
+      width: 16px;
+      height: 16px;
     }
     .badge .txt {
       display: flex;
@@ -500,7 +503,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         <div class="stores">
           <a id="playStoreBtn" class="btn btn-secondary" href="${ANDROID_PLAY_STORE}">
             <span class="badge">
-              <span class="tri"></span>
+              <svg class="badge-icon badge-icon--play" viewBox="0 0 512 512" aria-hidden="true" focusable="false">
+                <path d="M28 22l255 235L92 345c-16 8-34-3-34-21z" fill="#34A853"></path>
+                <path d="M283 257l82 75-247 145c-7 4-15 5-22 2l187-222z" fill="#FBBC04"></path>
+                <path d="M283 257l-68-63 6-7L365 102c18-11 40 2 40 23v264c0 21-22 34-40 23l-82-75z" fill="#4285F4"></path>
+                <path d="M28 22c0-18 18-29 34-21l159 93-6 7-68 63L28 22z" fill="#EA4335"></path>
+              </svg>
               <span class="txt">
                 <small>Get it on</small>
                 <b>Google Play</b>
@@ -509,6 +517,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           </a>
           <a id="appStoreBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">
             <span class="badge">
+              <svg class="badge-icon badge-icon--apple" viewBox="0 0 384 512" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M318.7 268.2c-.2-50.7 41.4-75.1 43.3-76.2-23.7-34.6-60.7-39.4-73.8-40-31.5-3.2-61.4 18.5-77.4 18.5-16 0-40.6-18.1-66.8-17.6-34.4.5-66.2 20-83.9 50.8-35.8 62.1-9.1 154 25.7 204.3 17 24.5 37.3 52 63.9 51 25.7-1 35.4-16.6 66.5-16.6s39.8 16.6 66.7 16.1c27.6-.5 45.1-25 61.9-49.6 19.5-28.4 27.5-55.9 28-57.3-.6-.2-53.7-20.6-53.1-81.4zM267.8 111.6c14-17 23.5-40.6 20.9-64.1-20.2.8-44.6 13.5-59 30.4-12.9 15-24.2 38.9-21.2 61.8 22.5 1.8 45.4-11.5 59.3-28.1z"></path>
+              </svg>
               <span class="txt">
                 <small>Download on the</small>
                 <b>App Store</b>
