@@ -1,7 +1,10 @@
 {
   "rewrites": [
     { "source": "/apple-app-site-association", "destination": "/.well-known/apple-app-site-association" },
-    { "source": "/u/:storyId([A-Za-z0-9-]+)", "destination": "/api/u/:storyId" },
+    {
+      "source": "/u/:storyId([A-Za-z0-9-]+)",
+      "destination": "https://resdvutqgrbbylknaxjp.supabase.co/functions/v1/story-share-page/u/:storyId"
+    },
     { "source": "/story/:storyId([A-Za-z0-9-]+)", "destination": "/api/:storyId" },
     { "source": "/join/:type/:code", "destination": "/api/join/:type/:code" },
     { "source": "/:storyId([A-Za-z0-9-]+)", "destination": "/api/:storyId" }
