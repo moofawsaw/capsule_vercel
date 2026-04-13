@@ -222,6 +222,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? `https://capapp.co/story/${actualStoryId}`
       : '';
     const appDeepLink = `capsule://story/${deepLinkId}`;
+    const appOpenUniversalUrl = capappStoryUrl || pageUrl;
     const webFallbackUrl = capappStoryUrl || `https://capapp.co/story/${encodeURIComponent(deepLinkId)}`;
     const IOS_APP_STORE =
       'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
@@ -668,7 +669,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         `}
       </div>
       <div class="actions">
-        <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule App</a>
+        <a id="openAppBtn" class="btn btn-primary" href="${appOpenUniversalUrl}">Open in Capsule App</a>
         <div class="divider">DON'T HAVE THE APP?</div>
         <div class="stores">
           <a id="playStoreBtn" class="btn btn-secondary" href="${ANDROID_PLAY_STORE}">
@@ -703,6 +704,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <script>
     (function() {
       var deepLink = ${JSON.stringify(appDeepLink)};
+      var universalOpenUrl = ${JSON.stringify(appOpenUniversalUrl)};
       var iosStore = ${JSON.stringify(IOS_APP_STORE)};
       var androidStore = ${JSON.stringify(ANDROID_PLAY_STORE)};
       var ua = navigator.userAgent || '';
@@ -726,14 +728,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         };
         document.addEventListener('visibilitychange', onVisibility);
 
-        // Attempt 1: direct custom-scheme navigation.
-        window.location.assign(deepLink);
+        // Attempt 1 (iOS): user-gesture universal link handoff is most reliable in webviews.
+        // Attempt 1 (Android): direct custom scheme navigation.
+        if (isIOS) {
+          window.location.assign(universalOpenUrl);
+        } else {
+          window.location.assign(deepLink);
+        }
 
-        // Attempt 2: anchor click often works in stricter iOS webviews.
+        // Attempt 2: alternate launch vector.
         setTimeout(function() {
           if (didHide) return;
           var anchor = document.createElement('a');
-          anchor.href = deepLink;
+          anchor.href = isIOS ? deepLink : universalOpenUrl;
           anchor.style.display = 'none';
           document.body.appendChild(anchor);
           anchor.click();
