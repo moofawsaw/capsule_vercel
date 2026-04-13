@@ -713,23 +713,58 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       var isTwitterReferrer = /(^|\\.)t\\.co\\//i.test(referrer) || /twitter\\.com/i.test(referrer) || /x\\.com/i.test(referrer);
       var storeUrl = isAndroid ? androidStore : iosStore;
       var launchedViaAutoHandoff = false;
+      var launchInFlight = false;
 
-      function attemptIOSAutoHandoffFromTwitter() {
-        if (!isIOS || !(isTwitterInApp || isTwitterReferrer) || launchedViaAutoHandoff) return;
-        launchedViaAutoHandoff = true;
-
+      function launchCapsuleApp(options) {
+        if (launchInFlight) return;
+        launchInFlight = true;
+        options = options || {};
+        var allowStoreFallback = !!options.allowStoreFallback;
         var didHide = false;
         var onVisibility = function() {
           if (document.visibilityState === 'hidden') didHide = true;
         };
-        document.addEventListener('visibilitychange', onVisibility, { once: false });
-        window.location.href = deepLink;
+        document.addEventListener('visibilitychange', onVisibility);
+
+        // Attempt 1: direct custom-scheme navigation.
+        window.location.assign(deepLink);
+
+        // Attempt 2: anchor click often works in stricter iOS webviews.
+        setTimeout(function() {
+          if (didHide) return;
+          var anchor = document.createElement('a');
+          anchor.href = deepLink;
+          anchor.style.display = 'none';
+          document.body.appendChild(anchor);
+          anchor.click();
+          document.body.removeChild(anchor);
+        }, 220);
+
+        // Attempt 3: hidden iframe fallback for legacy webview handling.
+        setTimeout(function() {
+          if (didHide) return;
+          var frame = document.createElement('iframe');
+          frame.style.display = 'none';
+          frame.src = deepLink;
+          document.body.appendChild(frame);
+          setTimeout(function() {
+            if (frame.parentNode) frame.parentNode.removeChild(frame);
+          }, 900);
+        }, 520);
+
         setTimeout(function() {
           document.removeEventListener('visibilitychange', onVisibility);
-          if (!didHide) {
-            // Stay on the fallback page if app launch is blocked by in-app browser policy.
+          if (!didHide && allowStoreFallback) {
+            window.location.href = storeUrl;
           }
-        }, 1400);
+          launchInFlight = false;
+        }, allowStoreFallback ? 1800 : 1600);
+      }
+
+      function attemptIOSAutoHandoffFromTwitter() {
+        if (!isIOS || !(isTwitterInApp || isTwitterReferrer) || launchedViaAutoHandoff) return;
+        launchedViaAutoHandoff = true;
+        launchCapsuleApp({ allowStoreFallback: false });
       }
 
       var appStoreBtn = document.getElementById('appStoreBtn');
@@ -746,14 +781,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         openAppBtn.addEventListener('click', function(event) {
           event.preventDefault();
           // Keep app launch on explicit user gesture for iOS reliability.
-          var startedAt = Date.now();
-          window.location.href = deepLink;
-          setTimeout(function() {
-            // If app does not foreground quickly, fall back to store.
-            if (Date.now() - startedAt < 2200) {
-              window.location.href = storeUrl;
-            }
-          }, isIOS ? 1400 : 1100);
+          launchCapsuleApp({ allowStoreFallback: true });
         });
       }
 
