@@ -114,11 +114,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ${videoDuration ? `<meta property="og:video:duration" content="${videoDuration}">` : ''}` : `
   <meta property="og:type" content="website">`;
 
-    const twitterCardTags = isVideo && videoUrl ? `
-  <meta name="twitter:card" content="player">
-  <meta name="twitter:player" content="${videoUrl}">
-  <meta name="twitter:player:width" content="720">
-  <meta name="twitter:player:height" content="1280">` : `
+    // Always use summary_large_image for X/Twitter. `player` cards require
+    // stricter platform allow-listing and can cause click-through to open the
+    // raw media URL inside the in-app viewer instead of the share page URL.
+    const twitterCardTags = `
   <meta name="twitter:card" content="summary_large_image">`;
 
     const html = `<!DOCTYPE html>
