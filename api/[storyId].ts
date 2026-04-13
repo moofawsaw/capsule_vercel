@@ -294,7 +294,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       margin: 0 auto;
       height: 100dvh;
       box-sizing: border-box;
-      padding: 14px 14px 16px;
+      padding: 16px 14px 14px;
       display: flex;
       flex-direction: column;
     }
@@ -302,7 +302,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
     }
     .brand-logo {
       height: 34px;
@@ -320,7 +320,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       align-items: center;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 6px;
+      margin-bottom: 10px;
     }
     .creator .avatar {
       width: 48px;
@@ -359,7 +359,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       text-align: center;
       color: #cbd5e1;
       font-size: 16px;
-      margin: 0 0 8px;
+      margin: 0 0 12px;
     }
     .card {
       display: flex;
@@ -375,7 +375,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       box-shadow: 0 14px 30px rgba(0,0,0,0.35);
       flex: 1;
       min-height: 0;
-      max-height: 50dvh;
+      max-height: 48dvh;
     }
     .media video, .media img {
       width: 100%;
@@ -384,7 +384,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       object-fit: cover;
     }
     .actions {
-      margin-top: 10px;
+      margin-top: 12px;
     }
     .btn {
       display: flex;
@@ -404,8 +404,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       white-space: nowrap;
     }
     .btn-primary {
-      background: var(--cta);
-      color: var(--cta-text);
+      min-height: 56px;
+      border-radius: 16px;
+      padding: 15px 16px;
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      background: linear-gradient(135deg, #c8acff 0%, #b08aff 52%, #9764ff 100%);
+      color: #131423;
+      box-shadow:
+        0 10px 24px rgba(164, 118, 255, 0.38),
+        inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+    @media (max-height: 740px) {
+      .wrap {
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+      .brand {
+        margin-bottom: 8px;
+      }
+      .brand-logo {
+        height: 30px;
+      }
+      .creator {
+        margin-bottom: 6px;
+      }
+      .subtitle {
+        margin-bottom: 8px;
+      }
+      .media {
+        max-height: 44dvh;
+      }
+      .btn-primary {
+        min-height: 50px;
+        font-size: 17px;
+      }
     }
     .btn-secondary {
       background: var(--store);
