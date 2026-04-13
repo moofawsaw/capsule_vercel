@@ -146,6 +146,11 @@ function extractUrlOrigin(input: string): string | null {
   }
 }
 
+function isTwitterFamilyRequest(req: VercelRequest): boolean {
+  const userAgent = String(req.headers['user-agent'] ?? '').toLowerCase();
+  return userAgent.includes('twitterbot') || userAgent.includes('twitter');
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   
@@ -154,6 +159,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
+    const isTwitterRequest = isTwitterFamilyRequest(req);
     // Detect if it's a UUID or short code and build the appropriate query param
     const normalizedStoryId = String(storyId).trim();
     const queryParam = isUUID(normalizedStoryId)
@@ -268,8 +274,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const escapedSocialTitle = escapeHtml(socialTitleRaw);
     const escapedSocialDescription = escapeHtml(socialDescriptionRaw);
 
-    // Video-specific OG tags
-    const videoMetaTags = isVideo && videoUrl ? `
+    // Keep Twitter image-first: avoid og:video hints that can cause raw-media
+    // playback behavior in X iOS clients.
+    const includeVideoOgTags = isVideo && !!videoUrl && !isTwitterRequest;
+    const videoMetaTags = includeVideoOgTags ? `
   <meta property="og:type" content="video.other">
   <meta property="og:video" content="${videoUrl}">
   <meta property="og:video:secure_url" content="${videoUrl}">
@@ -279,11 +287,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   ${videoDuration ? `<meta property="og:video:duration" content="${videoDuration}">` : ''}` : `
   <meta property="og:type" content="website">`;
 
-    // Use `summary` for video stories because portrait video thumbnails are often
-    // suppressed by X with `summary_large_image`. Keep large cards for images.
-    // We intentionally avoid `player` cards to prevent click-through to raw media.
+    // Keep one stable card mode across content types; we intentionally avoid
+    // `player` cards to prevent click-through to raw media URLs in X.
     const twitterCardTags = `
-  <meta name="twitter:card" content="${isVideo ? 'summary' : 'summary_large_image'}">`;
+  <meta name="twitter:card" content="summary_large_image">`;
     const appLinksMetaTags = `
   <meta property="al:ios:url" content="${escapeHtml(appDeepLink)}">
   <meta property="al:ios:app_store_id" content="${IOS_APP_STORE_ID}">
