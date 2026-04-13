@@ -187,6 +187,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
     const ANDROID_PLAY_STORE =
       'https://play.google.com/store/apps/details?id=com.capsule.app';
+    const IOS_APP_STORE_ID = '6758107085';
+    const IOS_BUNDLE_ID = 'com.capapp.capsule';
+    const IOS_APP_NAME = 'Capsule';
+    const ANDROID_PACKAGE = 'com.capsule.app';
+    const ANDROID_APP_NAME = 'Capsule';
     const faviconUrl = withAssetVersion('https://share.capapp.co/favicon.ico');
     const favicon32Url = withAssetVersion('https://share.capapp.co/favicon-32x32.png');
     const favicon16Url = withAssetVersion('https://share.capapp.co/favicon-16x16.png');
@@ -231,6 +236,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // raw media URL inside the in-app viewer instead of the share page URL.
     const twitterCardTags = `
   <meta name="twitter:card" content="summary_large_image">`;
+    const appLinksMetaTags = `
+  <meta property="al:ios:url" content="${escapeHtml(appDeepLink)}">
+  <meta property="al:ios:app_store_id" content="${IOS_APP_STORE_ID}">
+  <meta property="al:ios:app_name" content="${IOS_APP_NAME}">
+  <meta property="al:ios:bundle_id" content="${IOS_BUNDLE_ID}">
+  <meta property="al:android:url" content="${escapeHtml(appDeepLink)}">
+  <meta property="al:android:package" content="${ANDROID_PACKAGE}">
+  <meta property="al:android:app_name" content="${ANDROID_APP_NAME}">
+  <meta property="al:web:url" content="${escapeHtml(webFallbackUrl)}">
+  <meta property="al:web:should_fallback" content="true">`;
 
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -240,7 +255,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <title>${escapedTitle}</title>
   <meta name="description" content="${escapedDescription}">
   <link rel="canonical" href="${pageUrl}">
-  ${capappStoryUrl ? `<meta property="al:web:url" content="${capappStoryUrl}">` : ''}
+  ${appLinksMetaTags}
 
   <!-- Favicon -->
   <link rel="icon" href="${faviconUrl}" sizes="any">
