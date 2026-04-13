@@ -151,6 +151,11 @@ function isTwitterFamilyRequest(req: VercelRequest): boolean {
   return userAgent.includes('twitterbot') || userAgent.includes('twitter');
 }
 
+function isFacebookCrawlerRequest(req: VercelRequest): boolean {
+  const userAgent = String(req.headers['user-agent'] ?? '').toLowerCase();
+  return userAgent.includes('facebookexternalhit') || userAgent.includes('facebot');
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   
@@ -160,6 +165,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     const isTwitterRequest = isTwitterFamilyRequest(req);
+    const isFacebookCrawler = isFacebookCrawlerRequest(req);
     // Detect if it's a UUID or short code and build the appropriate query param
     const normalizedStoryId = String(storyId).trim();
     const queryParam = isUUID(normalizedStoryId)
@@ -274,9 +280,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const escapedSocialTitle = escapeHtml(socialTitleRaw);
     const escapedSocialDescription = escapeHtml(socialDescriptionRaw);
 
-    // Keep Twitter image-first: avoid og:video hints that can cause raw-media
-    // playback behavior in X iOS clients.
-    const includeVideoOgTags = isVideo && !!videoUrl && !isTwitterRequest;
+    // Keep Twitter and general webview paths image-first. Only Facebook crawler
+    // gets og:video cues for native video-rich previews.
+    const includeVideoOgTags = isVideo && !!videoUrl && isFacebookCrawler;
     const videoMetaTags = includeVideoOgTags ? `
   <meta property="og:type" content="video.other">
   <meta property="og:video" content="${videoUrl}">
@@ -703,11 +709,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       var isAndroid = /Android/i.test(ua);
       var isIOS = /iPhone|iPad|iPod/i.test(ua);
       var isTwitterInApp = /Twitter/i.test(ua);
+      var referrer = document.referrer || '';
+      var isTwitterReferrer = /(^|\\.)t\\.co\\//i.test(referrer) || /twitter\\.com/i.test(referrer) || /x\\.com/i.test(referrer);
       var storeUrl = isAndroid ? androidStore : iosStore;
       var launchedViaAutoHandoff = false;
 
-      function attemptTwitterIOSAutoHandoff() {
-        if (!isIOS || !isTwitterInApp || launchedViaAutoHandoff) return;
+      function attemptIOSAutoHandoffFromTwitter() {
+        if (!isIOS || !(isTwitterInApp || isTwitterReferrer) || launchedViaAutoHandoff) return;
         launchedViaAutoHandoff = true;
 
         var didHide = false;
@@ -750,7 +758,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       // X iOS in-app browser often suppresses universal link handoff; try once.
-      attemptTwitterIOSAutoHandoff();
+      attemptIOSAutoHandoffFromTwitter();
     })();
   </script>
 </body>
