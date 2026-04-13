@@ -379,18 +379,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .memory-title {
-      font-size: 19px;
-      font-weight: 700;
-      line-height: 1.25;
-      margin: 0;
-      text-align: center;
-      color: var(--text);
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
     .subtitle {
       text-align: center;
       color: #cbd5e1;
@@ -422,7 +410,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       width: 100%;
       height: 100%;
       display: block;
-      object-fit: cover;
+      object-fit: contain;
+      object-position: center center;
+      background: #111827;
     }
     .actions {
       margin-top: 12px;
@@ -473,9 +463,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       .creator .name {
         font-size: 18px;
-      }
-      .memory-title {
-        font-size: 17px;
       }
       .subtitle {
         font-size: 13px;
@@ -577,7 +564,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           <div class="handle">${presenterHandle}</div>
         </div>
       </div>
-      <h1 class="memory-title">${escapedTitle}</h1>
       <div class="subtitle">${subtitleText}</div>
     </div>
     <div class="card">
