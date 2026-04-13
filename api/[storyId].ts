@@ -284,20 +284,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
-      min-height: 100vh;
+      min-height: 100dvh;
       background: linear-gradient(180deg, #0b0d14 0%, #0d1020 100%);
       color: var(--text);
+      overflow: hidden;
     }
     .wrap {
       max-width: 640px;
       margin: 0 auto;
-      padding: 24px 16px 28px;
+      height: 100dvh;
+      box-sizing: border-box;
+      padding: 14px 14px 16px;
+      display: flex;
+      flex-direction: column;
     }
     .brand {
       display: flex;
       justify-content: center;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 8px;
     }
     .brand-logo {
       height: 34px;
@@ -315,7 +320,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       align-items: center;
       justify-content: center;
       gap: 12px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .creator .avatar {
       width: 48px;
@@ -353,8 +358,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .subtitle {
       text-align: center;
       color: #cbd5e1;
-      font-size: 18px;
-      margin: 0 0 12px;
+      font-size: 16px;
+      margin: 0 0 8px;
+    }
+    .card {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      flex: 1;
     }
     .media {
       position: relative;
@@ -362,27 +373,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       background: #111827;
       overflow: hidden;
       box-shadow: 0 14px 30px rgba(0,0,0,0.35);
+      flex: 1;
+      min-height: 0;
+      max-height: 50dvh;
     }
     .media video, .media img {
       width: 100%;
-      height: auto;
+      height: 100%;
       display: block;
+      object-fit: cover;
     }
     .actions {
-      margin-top: 14px;
+      margin-top: 10px;
     }
     .btn {
       display: flex;
       width: 100%;
       box-sizing: border-box;
       border-radius: 12px;
-      padding: 14px 16px;
-      font-size: 18px;
+      padding: 12px 14px;
+      font-size: 17px;
       font-weight: 800;
       text-decoration: none;
       align-items: center;
       justify-content: center;
-      margin-top: 12px;
+      margin-top: 10px;
       border: 0;
       cursor: pointer;
       min-width: 0;
@@ -404,15 +419,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .stores {
       display: flex;
       gap: 12px;
-      margin-top: 8px;
+      margin-top: 6px;
     }
     .divider {
       display: flex;
       align-items: center;
       gap: 10px;
       color: var(--muted);
-      margin: 12px 0 2px;
-      font-size: 13px;
+      margin: 8px 0 2px;
+      font-size: 12px;
       font-weight: 700;
       justify-content: center;
       letter-spacing: 0.7px;
@@ -423,14 +438,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       height: 1px;
       width: 130px;
       background: var(--line);
-    }
-    .link {
-      color: #b6bfd2;
-      text-align: center;
-      margin-top: 12px;
-      font-size: 16px;
-      line-height: 1.3;
-      display: block;
     }
     .badge {
       display: inline-flex;
@@ -509,7 +516,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             </span>
           </a>
         </div>
-        <a class="link" href="${webFallbackUrl}">View this story and more moments in the Capsule app</a>
       </div>
     </div>
   </div>
