@@ -309,8 +309,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     .header {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 8px;
+      gap: 8px;
+      margin-bottom: 6px;
       align-items: center;
     }
     .brand {
@@ -334,7 +334,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       align-items: center;
       justify-content: center;
       gap: 10px;
-      padding: 10px 12px;
+      padding: 6px 8px;
       border-radius: 12px;
       background: transparent;
       border: none;
@@ -360,7 +360,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .creator .meta {
       min-width: 0;
-      text-align: center;
+      text-align: left;
     }
     .creator .name {
       font-size: 20px;
@@ -398,24 +398,29 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .media {
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       border-radius: 14px;
       background: #111827;
       overflow: hidden;
       box-shadow: 0 14px 30px rgba(0,0,0,0.35);
       flex: 1;
       min-height: 0;
-      max-height: 48dvh;
+      max-height: min(44dvh, calc(100dvh - 360px));
     }
     .media video, .media img {
-      width: 100%;
-      height: 100%;
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
       display: block;
       object-fit: contain;
       object-position: center center;
       background: #111827;
     }
     .actions {
-      margin-top: 12px;
+      margin-top: 10px;
     }
     .btn {
       display: flex;
@@ -452,7 +457,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         padding-bottom: 12px;
       }
       .header {
-        gap: 8px;
+        gap: 6px;
       }
       .brand-logo {
         height: 30px;
@@ -468,7 +473,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         font-size: 13px;
       }
       .media {
-        max-height: 44dvh;
+        max-height: min(40dvh, calc(100dvh - 330px));
       }
       .btn-primary {
         min-height: 50px;
@@ -492,15 +497,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .stores {
       display: flex;
-      gap: 12px;
-      margin-top: 6px;
+      gap: 10px;
+      margin-top: 5px;
     }
     .divider {
       display: flex;
       align-items: center;
       gap: 10px;
       color: var(--muted);
-      margin: 8px 0 2px;
+      margin: 7px 0 2px;
       font-size: 12px;
       font-weight: 700;
       justify-content: center;
