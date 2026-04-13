@@ -272,6 +272,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:url" content="${pageUrl}">
   
   <style>
+    html {
+      height: 100%;
+    }
     :root {
       --bg: #0b0d14;
       --text: #f8fafc;
@@ -287,12 +290,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       min-height: 100dvh;
       background: linear-gradient(180deg, #0b0d14 0%, #0d1020 100%);
       color: var(--text);
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .wrap {
       max-width: 640px;
       margin: 0 auto;
-      height: 100dvh;
+      min-height: 100dvh;
       box-sizing: border-box;
       padding: 16px 14px 14px;
       display: flex;
