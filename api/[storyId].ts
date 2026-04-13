@@ -94,6 +94,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? `https://capapp.co/story/${actualStoryId}`
       : '';
     const appDeepLink = `capsule://story/${deepLinkId}`;
+    const webFallbackUrl = capappStoryUrl || `https://capapp.co/story/${encodeURIComponent(deepLinkId)}`;
     const IOS_APP_STORE =
       'https://apps.apple.com/us/app/capsule-shared-memories/id6758107085';
     const ANDROID_PLAY_STORE =
@@ -225,21 +226,39 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       <h1>${title}</h1>
       <p>${description}</p>
       <a id="openAppBtn" class="btn btn-primary" href="${appDeepLink}">Open in Capsule</a>
-      ${capappStoryUrl ? `<a class="link" href="${capappStoryUrl}">View on web</a>` : ''}
       <a id="storeBtn" class="btn btn-secondary" href="${IOS_APP_STORE}">Download Capsule</a>
+      <a class="link" href="${webFallbackUrl}">Continue in browser</a>
     </div>
   </div>
   <script>
     (function() {
+      var deepLink = ${JSON.stringify(appDeepLink)};
       var iosStore = ${JSON.stringify(IOS_APP_STORE)};
       var androidStore = ${JSON.stringify(ANDROID_PLAY_STORE)};
       var ua = navigator.userAgent || '';
       var isAndroid = /Android/i.test(ua);
+      var isIOS = /iPhone|iPad|iPod/i.test(ua);
       var storeUrl = isAndroid ? androidStore : iosStore;
 
       var storeBtn = document.getElementById('storeBtn');
       if (storeBtn) {
         storeBtn.setAttribute('href', storeUrl);
+      }
+
+      var openAppBtn = document.getElementById('openAppBtn');
+      if (openAppBtn) {
+        openAppBtn.addEventListener('click', function(event) {
+          event.preventDefault();
+          // Keep app launch on explicit user gesture for iOS reliability.
+          var startedAt = Date.now();
+          window.location.href = deepLink;
+          setTimeout(function() {
+            // If app does not foreground quickly, fall back to store.
+            if (Date.now() - startedAt < 2200) {
+              window.location.href = storeUrl;
+            }
+          }, isIOS ? 1400 : 1100);
+        });
       }
     })();
   </script>
