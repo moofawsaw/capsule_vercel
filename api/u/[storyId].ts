@@ -1,17 +1,12 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-function isPreviewBot(userAgent: string): boolean {
-  const ua = userAgent.trim().toLowerCase();
-  if (!ua) return false;
-  return /(bot|crawler|spider|facebookexternalhit|facebot|twitterbot|slackbot|linkedinbot|discordbot|whatsapp|telegrambot|applebot|googlebot|bingbot|duckduckbot|embedly|quora link preview|pinterest|vkshare|skimlinks|xing-contenttabreceiver)/i.test(
-    ua,
-  );
-}
-
-// Universal-link-only entrypoint:
-// - This route never renders HTML.
-// - Installed devices should hand off directly to the app via universal links.
-// - Interactive requests intentionally do NOT redirect to avoid browser/app race chains.
+// Universal-link entrypoint.
+// When the app is installed, iOS opens the app directly via universal links
+// without ever hitting this server. This handler only runs for:
+//   1. Link preview fetchers (iMessage, social crawlers, etc.)
+//   2. Users who don't have the app installed
+// In both cases, redirect to the full story page which serves OG metadata,
+// favicons, and a fallback "download the app" UI.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { storyId } = req.query;
   if (!storyId || Array.isArray(storyId)) {
@@ -23,25 +18,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(400).send('Invalid storyId');
   }
 
-  const uaHeader = req.headers['user-agent'];
-  const userAgent = Array.isArray(uaHeader) ? uaHeader.join(' ') : (uaHeader ?? '');
-  const traceId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  res.setHeader('X-Capsule-U-Trace', traceId);
-
-  // Preserve rich previews (iMessage/social crawlers) by allowing crawler traffic
-  // to resolve through the explicit story web fallback page.
-  if (isPreviewBot(userAgent)) {
-    const fallbackPath = `/story/${encodeURIComponent(normalized)}`;
-    console.log(`[u-link][${traceId}] crawler redirect -> ${fallbackPath}`);
-    res.setHeader('Cache-Control', 'no-store');
-    res.setHeader('X-Capsule-U-Mode', 'crawler-redirect');
-    return res.redirect(302, fallbackPath);
-  }
-
-  // Interactive taps: no redirect chain. If universal-link handoff fails and Safari
-  // still lands here, return no-content rather than triggering browser navigation.
-  console.log(`[u-link][${traceId}] interactive no-content for ${normalized}`);
+  const fallbackPath = `/story/${encodeURIComponent(normalized)}`;
   res.setHeader('Cache-Control', 'no-store');
-  res.setHeader('X-Capsule-U-Mode', 'interactive-no-content');
-  return res.status(204).send('');
+  return res.redirect(302, fallbackPath);
 }
