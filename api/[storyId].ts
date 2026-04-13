@@ -270,6 +270,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="twitter:description" content="${escapedDescription}">
   <meta name="twitter:image" content="${imageUrl}">
   <meta name="twitter:url" content="${pageUrl}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
   
   <style>
     html {
@@ -280,12 +283,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       --text: #f8fafc;
       --muted: #9ca3af;
       --line: rgba(255,255,255,0.14);
-      --cta: #b794ff;
-      --cta-text: #151622;
+      --cta: #a78bfa;
+      --cta-text: #ffffff;
       --store: #0c0f18;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       min-height: 100dvh;
       background: linear-gradient(180deg, #0b0d14 0%, #0d1020 100%);
@@ -399,6 +402,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       padding: 12px 14px;
       font-size: 17px;
       font-weight: 800;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       text-decoration: none;
       align-items: center;
       justify-content: center;
@@ -410,19 +414,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
     .btn-primary {
       min-height: 56px;
-      border-radius: 16px;
-      padding: 15px 16px;
-      font-size: 18px;
-      font-weight: 800;
-      letter-spacing: 0.2px;
-      background: linear-gradient(135deg, #c8acff 0%, #b08aff 52%, #9764ff 100%);
-      color: #131423;
-      box-shadow:
-        0 10px 24px rgba(164, 118, 255, 0.38),
-        inset 0 1px 0 rgba(255,255,255,0.45);
-    }
-    .btn-primary:active {
-      transform: translateY(1px);
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-size: 16px;
+      font-weight: 700;
+      line-height: 1;
+      background: var(--cta);
+      color: var(--cta-text);
+      box-shadow: none;
     }
     @media (max-height: 740px) {
       .wrap {
@@ -446,7 +445,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
       .btn-primary {
         min-height: 50px;
-        font-size: 17px;
+        font-size: 16px;
+      }
+    }
+    @media (prefers-color-scheme: light) {
+      :root {
+        --cta: #7c3aed;
+        --cta-text: #ffffff;
       }
     }
     .btn-secondary {
