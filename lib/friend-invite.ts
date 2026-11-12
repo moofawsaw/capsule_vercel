@@ -75,12 +75,13 @@ export function friendIosInstallUrl(channel: FriendIosInstallChannel): string {
     : downloadConfig.stores.apple.href;
 }
 
-/** Copy in the user's tap, then expose a fresh store link for Safari. */
+/** Navigate only after copying, preserving the tap for synchronous clipboard writes. */
 export async function copyFriendInviteAndInstall(code: string,
-  write: (text: string) => Promise<void>, prepare: (url: string) => void,
+  write: (text: string) => void | Promise<void>, openStore: (url: string) => void,
   now = Date.now(), channel: FriendIosInstallChannel = 'app-store'): Promise<void> {
-  await write(friendInstallHandoff(code, now));
-  prepare(friendIosInstallUrl(channel));
+  const copying = write(friendInstallHandoff(code, now));
+  if (copying) await copying;
+  openStore(friendIosInstallUrl(channel));
 }
 
 // Shared invitation copy from the Flutter catalogs. All 20 supported locales;

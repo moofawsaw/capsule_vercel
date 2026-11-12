@@ -41,6 +41,14 @@ test('TestFlight uses Capsule’s internal destination and copies the same invit
   assert.deepEqual(events, [friendInstallHandoff('AbCd234567', now),
     'itms-beta://testflight.apple.com/v1/app/6758107085']);
 });
+test('a synchronous iOS copy opens the store in the same tap', async () => {
+  const events: string[] = [];
+  const handoff = copyFriendInviteAndInstall('AbCd234567', url => { events.push(url); },
+    url => { events.push(url); }, now);
+  assert.deepEqual(events, [friendInstallHandoff('AbCd234567', now),
+    'https://apps.apple.com/app/id6758107085']);
+  await handoff;
+});
 test('malformed codes cannot prepare installation or QR handoffs', () => {
   for (const value of ['bad', '../ABCD2345', 'ABCD2345;package=other', 'ABCD2345<script>']) {
     assert.equal(isValidFriendCode(value), false);

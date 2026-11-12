@@ -26,6 +26,28 @@ function message(tag: 'p' | 'h1' | 'small', source: InviteMessage, className?: s
   content.append(node);
   return node;
 }
+
+function copyIosInvite(text: string): void | Promise<void> {
+  // Keep Safari's store handoff in the tap when the synchronous copy succeeds.
+  const previousFocus = document.activeElement;
+  const input = element('textarea');
+  input.value = text;
+  input.readOnly = true;
+  input.style.cssText = 'position:fixed;top:0;left:0;width:1px;height:1px;opacity:0';
+  document.body.append(input);
+  try {
+    input.focus({ preventScroll: true });
+    input.select();
+    input.setSelectionRange(0, text.length);
+    if (document.execCommand('copy')) return;
+  } catch { /* The standard clipboard API is also available in secure contexts. */ }
+  finally {
+    input.remove();
+    if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true });
+  }
+  return navigator.clipboard.writeText(text);
+}
+
 if (!isValidFriendCode(code)) {
   message('h1', 'This invitation link does not look right');
   message('p', 'Ask your friend to resend the full invitation link.');
@@ -98,13 +120,14 @@ if (!isValidFriendCode(code)) {
     field.value = device === 'desktop' ? friendPublicInviteUrl(code) : friendInstallHandoff(code);
     try {
       if (install) {
-        await copyFriendInviteAndInstall(code, async url => {
+        await copyFriendInviteAndInstall(code, url => {
           field.value = url;
-          await navigator.clipboard.writeText(url);
+          return copyIosInvite(url);
         }, destination => {
-          // A fresh tap avoids Safari blocking navigation after asynchronous copy.
           store.href = destination;
           primary.hidden = true; store.hidden = false;
+          // Leave the direct link available if Safari prevents the automatic handoff.
+          try { window.location.assign(destination); } catch { /* Use the displayed link. */ }
         }, Date.now(), installChannel);
       } else {
         await navigator.clipboard.writeText(field.value);
@@ -139,7 +162,9 @@ if (!isValidFriendCode(code)) {
         installChannel = installChannel === 'app-store' ? 'testflight' : 'app-store';
         try { localStorage.setItem(installChannelKey, installChannel); } catch { /* Optional. */ }
         showInstallChannel();
-        void copy(true);
+        primary.hidden = false;
+        store.hidden = manual.hidden = true;
+        status.textContent = '';
       });
     }
     primary.addEventListener('click', () => void copy(device === 'ios'));
