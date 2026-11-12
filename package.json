@@ -2,6 +2,18 @@
   "name": "capsule-share-proxy",
   "version": "1.0.0",
   "dependencies": {
-    "@vercel/node": "^3.0.0"
+    "@vercel/node": "^3.0.0",
+    "qrcode-generator": "^2.0.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "build": "esbuild lib/friend-invite-client.ts --bundle --minify --target=es2020 --outfile=public/friend-invite.js",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts"
   }
 }

@@ -1,3 +1,4 @@
+import { renderFriendInvitePage } from '../../../lib/friend-invite-page';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 function escapeHtml(str: string): string {
@@ -292,8 +293,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const t = String(type).trim().toLowerCase();
   const c = String(code).trim();
 
+  if (t === 'friend') {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'private, no-store');
+    return res.status(200).send(renderFriendInvitePage(c, req.query.name));
+  }
+
   const isMemory = t === 'memory';
   const isGroup = t === 'group';
+  const isChapter = t === 'chapter';
   const isFriend = t === 'friend';
 
   const pageUrl = `https://share.capapp.co/join/${t}/${encodeURIComponent(c)}`;

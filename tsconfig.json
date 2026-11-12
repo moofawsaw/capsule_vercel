@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true,
+    "strict": true,
+    "noEmit": true,
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
+    "skipLibCheck": true
+  },
+  "include": [
+    "api/**/*.ts",
+    "lib/**/*.ts",
+    "test/**/*.ts"
+  ]
+}
