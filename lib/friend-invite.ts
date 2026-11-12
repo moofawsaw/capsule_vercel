@@ -67,21 +67,17 @@ export function friendInviteDevice(device: {
   return "desktop";
 }
 
-export type FriendIosInstallChannel = 'app-store' | 'testflight';
-
-export function friendIosInstallUrl(channel: FriendIosInstallChannel): string {
-  return channel === 'testflight'
-    ? 'itms-beta://testflight.apple.com/v1/app/6758107085'
-    : downloadConfig.stores.apple.href;
+export function friendIosInstallUrl(): string {
+  return downloadConfig.stores.apple.href;
 }
 
 /** Navigate only after copying, preserving the tap for synchronous clipboard writes. */
 export async function copyFriendInviteAndInstall(code: string,
   write: (text: string) => void | Promise<void>, openStore: (url: string) => void,
-  now = Date.now(), channel: FriendIosInstallChannel = 'app-store'): Promise<void> {
+  now = Date.now()): Promise<void> {
   const copying = write(friendInstallHandoff(code, now));
   if (copying) await copying;
-  openStore(friendIosInstallUrl(channel));
+  openStore(friendIosInstallUrl());
 }
 
 // Shared invitation copy from the Flutter catalogs. All 20 supported locales;
@@ -111,9 +107,6 @@ export const friendInviteCopy = {
     Continue: "Continue",
     "Scan this code with your phone to continue.": "Scan this code with your phone to continue.",
     "Could not complete that action. Try again.": "Could not complete that action. Try again.",
-    "Use TestFlight": "Use TestFlight",
-    "Use App Store": "Use App Store",
-    "Continue to TestFlight": "Continue to TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.",
   },
@@ -140,9 +133,6 @@ export const friendInviteCopy = {
     Continue: "继续",
     "Scan this code with your phone to continue.": "使用手机扫描此二维码以继续。",
     "Could not complete that action. Try again.": "无法完成该操作。再试一次。",
-    "Use TestFlight": "使用 TestFlight",
-    "Use App Store": "使用 App Store",
-    "Continue to TestFlight": "前往 TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "点击“继续”会自动复制邀请链接。安装 Capsule 后，请在出现提示时允许粘贴，以便注册后继续接受邀请。",
   },
@@ -172,9 +162,6 @@ export const friendInviteCopy = {
       "Scannez ce code avec votre téléphone pour continuer.",
     "Could not complete that action. Try again.":
       "Impossible de terminer cette action. Essayer à nouveau.",
-    "Use TestFlight": "Utiliser TestFlight",
-    "Use App Store": "Utiliser l’App Store",
-    "Continue to TestFlight": "Continuer vers TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Continuer copie automatiquement votre lien d’invitation. Après avoir installé Capsule, autorisez le collage lorsqu’il vous est demandé pour reprendre votre invitation après l’inscription.",
   },
@@ -204,9 +191,6 @@ export const friendInviteCopy = {
       "Scanne diesen Code mit deinem Smartphone, um fortzufahren.",
     "Could not complete that action. Try again.":
       "Diese Aktion konnte nicht abgeschlossen werden. Versuchen Sie es erneut.",
-    "Use TestFlight": "TestFlight verwenden",
-    "Use App Store": "App Store verwenden",
-    "Continue to TestFlight": "Weiter zu TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Weiter kopiert deinen Einladungslink automatisch. Erlaube nach der Installation von Capsule das Einfügen, wenn du dazu aufgefordert wirst, damit du nach der Registrierung mit deiner Einladung fortfahren kannst.",
   },
@@ -235,9 +219,6 @@ export const friendInviteCopy = {
     "Scan this code with your phone to continue.":
       "Scansiona questo codice con il telefono per continuare.",
     "Could not complete that action. Try again.": "Impossibile completare l'azione. Riprova.",
-    "Use TestFlight": "Usa TestFlight",
-    "Use App Store": "Usa App Store",
-    "Continue to TestFlight": "Continua su TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Continua copia automaticamente il link del tuo invito. Dopo aver installato Capsule, consenti di incollarlo quando richiesto per riprendere l’invito dopo la registrazione.",
   },
@@ -267,9 +248,6 @@ export const friendInviteCopy = {
       "スマートフォンでこのコードを読み取って続けてください。",
     "Could not complete that action. Try again.":
       "そのアクションを完了できませんでした。もう一度やり直してください。",
-    "Use TestFlight": "TestFlight を使う",
-    "Use App Store": "App Store を使う",
-    "Continue to TestFlight": "TestFlight に進む",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "「続ける」をタップすると、招待リンクが自動でコピーされます。Capsule のインストール後、貼り付けの確認が表示されたら許可すると、登録後に招待の手続きを続けられます。",
   },
@@ -299,9 +277,6 @@ export const friendInviteCopy = {
       "Leia este código com seu celular para continuar.",
     "Could not complete that action. Try again.":
       "Não foi possível concluir essa ação. Tente novamente.",
-    "Use TestFlight": "Usar TestFlight",
-    "Use App Store": "Usar App Store",
-    "Continue to TestFlight": "Continuar no TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Continuar copia automaticamente seu link de convite. Depois de instalar o Capsule, permita a colagem quando solicitado para continuar seu convite após o cadastro.",
   },
@@ -331,9 +306,6 @@ export const friendInviteCopy = {
       "Отсканируйте этот код телефоном, чтобы продолжить.",
     "Could not complete that action. Try again.":
       "Не удалось выполнить это действие. Попробуйте еще раз.",
-    "Use TestFlight": "Использовать TestFlight",
-    "Use App Store": "Использовать App Store",
-    "Continue to TestFlight": "Перейти в TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Кнопка «Продолжить» автоматически копирует ссылку приглашения. После установки Capsule разрешите вставку, когда появится запрос, чтобы продолжить по приглашению после регистрации.",
   },
@@ -363,9 +335,6 @@ export const friendInviteCopy = {
       "Escanea este código con tu teléfono para continuar.",
     "Could not complete that action. Try again.":
       "No se pudo completar esa acción. Intentar otra vez.",
-    "Use TestFlight": "Usar TestFlight",
-    "Use App Store": "Usar App Store",
-    "Continue to TestFlight": "Continuar a TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Continuar copia automáticamente tu enlace de invitación. Después de instalar Capsule, permite pegarlo cuando se te solicite para continuar con tu invitación tras registrarte.",
   },
@@ -394,9 +363,6 @@ export const friendInviteCopy = {
     "Scan this code with your phone to continue.":
       "Scan deze code met je telefoon om verder te gaan.",
     "Could not complete that action. Try again.": "Actie mislukt. Probeer opnieuw.",
-    "Use TestFlight": "TestFlight gebruiken",
-    "Use App Store": "App Store gebruiken",
-    "Continue to TestFlight": "Doorgaan naar TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Doorgaan kopieert je uitnodigingslink automatisch. Sta na het installeren van Capsule het plakken toe wanneer daarom wordt gevraagd, zodat je na de registratie verder kunt met je uitnodiging.",
   },
@@ -424,9 +390,6 @@ export const friendInviteCopy = {
     Continue: "متابعة",
     "Scan this code with your phone to continue.": "امسح هذا الرمز بهاتفك للمتابعة.",
     "Could not complete that action. Try again.": "تعذّر إكمال هذا الإجراء. حاول مجددًا.",
-    "Use TestFlight": "استخدام TestFlight",
-    "Use App Store": "استخدام App Store",
-    "Continue to TestFlight": "المتابعة إلى TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "عند الضغط على متابعة، يُنسخ رابط دعوتك تلقائيًا. بعد تثبيت Capsule، اسمح باللصق عند ظهور الطلب لمتابعة دعوتك بعد إنشاء الحساب.",
   },
@@ -455,9 +418,6 @@ export const friendInviteCopy = {
     "Scan this code with your phone to continue.":
       "جاری رکھنے کے لیے اپنے فون سے یہ کوڈ اسکین کریں۔",
     "Could not complete that action. Try again.": "یہ کارروائی مکمل نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
-    "Use TestFlight": "TestFlight استعمال کریں",
-    "Use App Store": "App Store استعمال کریں",
-    "Continue to TestFlight": "TestFlight پر جاری رکھیں",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "جاری رکھیں پر ٹیپ کرنے سے آپ کی دعوت کا لنک خود بخود کاپی ہو جاتا ہے۔ Capsule انسٹال کرنے کے بعد، جب کہا جائے تو پیسٹ کرنے کی اجازت دیں تاکہ سائن اپ کے بعد اپنی دعوت جاری رکھ سکیں۔",
   },
@@ -485,9 +445,6 @@ export const friendInviteCopy = {
     Continue: "ਜਾਰੀ ਰੱਖੋ",
     "Scan this code with your phone to continue.": "ਜਾਰੀ ਰੱਖਣ ਲਈ ਆਪਣੇ ਫ਼ੋਨ ਨਾਲ ਇਹ ਕੋਡ ਸਕੈਨ ਕਰੋ।",
     "Could not complete that action. Try again.": "ਇਹ ਕਾਰਵਾਈ ਪੂਰੀ ਨਹੀਂ ਹੋ ਸਕੀ। ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
-    "Use TestFlight": "TestFlight ਵਰਤੋ",
-    "Use App Store": "App Store ਵਰਤੋ",
-    "Continue to TestFlight": "TestFlight ਉੱਤੇ ਜਾਰੀ ਰੱਖੋ",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "ਜਾਰੀ ਰੱਖੋ ਉੱਤੇ ਟੈਪ ਕਰਨ ਨਾਲ ਤੁਹਾਡੇ ਸੱਦੇ ਦਾ ਲਿੰਕ ਆਪਣੇ ਆਪ ਕਾਪੀ ਹੋ ਜਾਂਦਾ ਹੈ। Capsule ਇੰਸਟਾਲ ਕਰਨ ਤੋਂ ਬਾਅਦ, ਪੁੱਛੇ ਜਾਣ ਉੱਤੇ ਪੇਸਟ ਕਰਨ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ ਤਾਂ ਜੋ ਸਾਈਨ ਅੱਪ ਤੋਂ ਬਾਅਦ ਸੱਦੇ ਨਾਲ ਅੱਗੇ ਵਧ ਸਕੋ।",
   },
@@ -516,9 +473,6 @@ export const friendInviteCopy = {
     "Scan this code with your phone to continue.":
       "जारी रखने के लिए अपने फ़ोन से यह कोड स्कैन करें।",
     "Could not complete that action. Try again.": "यह कार्रवाई पूरी नहीं हो सकी। फिर कोशिश करें।",
-    "Use TestFlight": "TestFlight इस्तेमाल करें",
-    "Use App Store": "App Store इस्तेमाल करें",
-    "Continue to TestFlight": "TestFlight पर जारी रखें",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "जारी रखें पर टैप करने से आपका आमंत्रण लिंक अपने आप कॉपी हो जाता है। Capsule इंस्टॉल करने के बाद, पूछे जाने पर पेस्ट करने की अनुमति दें ताकि साइन अप के बाद अपना आमंत्रण जारी रख सकें।",
   },
@@ -547,9 +501,6 @@ export const friendInviteCopy = {
     "Scan this code with your phone to continue.":
       "চালিয়ে যেতে আপনার ফোন দিয়ে এই কোড স্ক্যান করুন।",
     "Could not complete that action. Try again.": "কাজটি শেষ করা যায়নি। আবার চেষ্টা করুন।",
-    "Use TestFlight": "TestFlight ব্যবহার করুন",
-    "Use App Store": "App Store ব্যবহার করুন",
-    "Continue to TestFlight": "TestFlight-এ এগিয়ে যান",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "চালিয়ে যান-এ ট্যাপ করলে আপনার আমন্ত্রণের লিঙ্কটি স্বয়ংক্রিয়ভাবে কপি হয়ে যায়। Capsule ইনস্টল করার পর অনুরোধ করা হলে পেস্ট করার অনুমতি দিন, যাতে সাইন আপের পর আমন্ত্রণটি চালিয়ে যেতে পারেন।",
   },
@@ -577,9 +528,6 @@ export const friendInviteCopy = {
     Continue: "계속",
     "Scan this code with your phone to continue.": "계속하려면 휴대전화로 이 코드를 스캔하세요.",
     "Could not complete that action. Try again.": "작업을 완료하지 못했습니다. 다시 시도하세요.",
-    "Use TestFlight": "TestFlight 사용",
-    "Use App Store": "App Store 사용",
-    "Continue to TestFlight": "TestFlight으로 계속",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "계속을 탭하면 초대 링크가 자동으로 복사됩니다. Capsule를 설치한 후 붙여넣기 요청이 표시되면 허용하면 가입 후 초대를 이어갈 수 있습니다.",
   },
@@ -607,9 +555,6 @@ export const friendInviteCopy = {
     Continue: "Devam et",
     "Scan this code with your phone to continue.": "Devam etmek için bu kodu telefonunla tara.",
     "Could not complete that action. Try again.": "Bu işlem tamamlanamadı. Tekrar dene.",
-    "Use TestFlight": "TestFlight kullan",
-    "Use App Store": "App Store kullan",
-    "Continue to TestFlight": "TestFlight’a devam et",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Devam düğmesi davet bağlantını otomatik olarak kopyalar. Capsule’i yükledikten sonra, kayıt işleminin ardından davetine devam edebilmek için istendiğinde yapıştırmaya izin ver.",
   },
@@ -639,9 +584,6 @@ export const friendInviteCopy = {
       "Pindai kode ini dengan ponsel Anda untuk melanjutkan.",
     "Could not complete that action. Try again.":
       "Tidak dapat menyelesaikan tindakan itu. Coba lagi.",
-    "Use TestFlight": "Gunakan TestFlight",
-    "Use App Store": "Gunakan App Store",
-    "Continue to TestFlight": "Lanjutkan ke TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Lanjutkan otomatis menyalin tautan undanganmu. Setelah memasang Capsule, izinkan penempelan saat diminta agar undanganmu dapat dilanjutkan setelah mendaftar.",
   },
@@ -669,9 +611,6 @@ export const friendInviteCopy = {
     Continue: "Tiếp tục",
     "Scan this code with your phone to continue.": "Quét mã này bằng điện thoại để tiếp tục.",
     "Could not complete that action. Try again.": "Không thể hoàn tất thao tác đó. Thử lại.",
-    "Use TestFlight": "Dùng TestFlight",
-    "Use App Store": "Dùng App Store",
-    "Continue to TestFlight": "Tiếp tục đến TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "Tiếp tục sẽ tự động sao chép liên kết lời mời của bạn. Sau khi cài đặt Capsule, hãy cho phép dán khi được yêu cầu để tiếp tục lời mời sau khi đăng ký.",
   },
@@ -699,9 +638,6 @@ export const friendInviteCopy = {
     Continue: "ดำเนินการต่อ",
     "Scan this code with your phone to continue.": "สแกนรหัสนี้ด้วยโทรศัพท์ของคุณเพื่อดำเนินการต่อ",
     "Could not complete that action. Try again.": "ดำเนินการไม่สำเร็จ ลองอีกครั้ง",
-    "Use TestFlight": "ใช้ TestFlight",
-    "Use App Store": "ใช้ App Store",
-    "Continue to TestFlight": "ดำเนินการต่อไปยัง TestFlight",
     "Continue automatically copies your invitation link. After installing Capsule, allow pasting when prompted to continue your invitation after sign-up.":
       "เมื่อแตะดำเนินการต่อ ลิงก์คำเชิญของคุณจะถูกคัดลอกโดยอัตโนมัติ หลังติดตั้ง Capsule ให้อนุญาตการวางเมื่อระบบถาม เพื่อดำเนินการตามคำเชิญต่อหลังสมัครบัญชี",
   },

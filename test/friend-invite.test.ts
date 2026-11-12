@@ -34,13 +34,6 @@ test('iOS only prepares the store continuation after successful clipboard copyin
   await assert.rejects(copyFriendInviteAndInstall('ABCD2345', async () => { throw Error('denied'); }, () => { prepared = true; }));
   assert.equal(prepared, false);
 });
-test('TestFlight uses Capsule’s internal destination and copies the same invite', async () => {
-  const events: string[] = [];
-  await copyFriendInviteAndInstall('AbCd234567', async url => { events.push(url); },
-    url => events.push(url), now, 'testflight');
-  assert.deepEqual(events, [friendInstallHandoff('AbCd234567', now),
-    'itms-beta://testflight.apple.com/v1/app/6758107085']);
-});
 test('a synchronous iOS copy opens the store in the same tap', async () => {
   const events: string[] = [];
   const handoff = copyFriendInviteAndInstall('AbCd234567', url => { events.push(url); },
