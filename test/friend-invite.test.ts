@@ -34,6 +34,13 @@ test('iOS only prepares the store continuation after successful clipboard copyin
   await assert.rejects(copyFriendInviteAndInstall('ABCD2345', async () => { throw Error('denied'); }, () => { prepared = true; }));
   assert.equal(prepared, false);
 });
+test('TestFlight uses Capsule’s internal destination and copies the same invite', async () => {
+  const events: string[] = [];
+  await copyFriendInviteAndInstall('AbCd234567', async url => { events.push(url); },
+    url => events.push(url), now, 'testflight');
+  assert.deepEqual(events, [friendInstallHandoff('AbCd234567', now),
+    'itms-beta://testflight.apple.com/v1/app/6758107085']);
+});
 test('malformed codes cannot prepare installation or QR handoffs', () => {
   for (const value of ['bad', '../ABCD2345', 'ABCD2345;package=other', 'ABCD2345<script>']) {
     assert.equal(isValidFriendCode(value), false);

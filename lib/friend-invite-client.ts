@@ -1,8 +1,8 @@
 import {
   copyFriendInviteAndInstall, friendAndroidContinueUrl, friendInstallHandoff,
   friendInviteDevice, friendInviteDirection, friendInviteLocale, friendInviteName,
-  friendInviteQr, friendInviteText, friendPublicInviteUrl, iosStoreUrl,
-  isValidFriendCode, type InviteMessage,
+  friendInviteQr, friendInviteText, friendIosInstallUrl, friendPublicInviteUrl,
+  isValidFriendCode, type FriendIosInstallChannel, type InviteMessage,
 } from './friend-invite';
 
 const config = JSON.parse(document.getElementById('invite-config')!.textContent!);
@@ -66,8 +66,18 @@ if (!isValidFriendCode(code)) {
   }
 
   const primary = element('button', t(device === 'desktop' ? 'Copy invite link' : 'Continue'));
-  const store = element('a', t('Continue to App Store'));
-  store.href = iosStoreUrl; store.className = 'button'; store.hidden = true;
+  const store = element('a');
+  store.className = 'button'; store.hidden = true;
+  const switchStore = element('button');
+  switchStore.className = 'outline';
+  const installChannelKey = 'capsule.friend-invite.ios-install-channel';
+  let installChannel: FriendIosInstallChannel = 'app-store';
+  function showInstallChannel() {
+    const isTestFlight = installChannel === 'testflight';
+    store.textContent = t(isTestFlight ? 'Continue to TestFlight' : 'Continue to App Store');
+    store.href = friendIosInstallUrl(installChannel);
+    switchStore.textContent = t(isTestFlight ? 'Use App Store' : 'Use TestFlight');
+  }
   const status = element('p'); status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
   const manual = element('section'); manual.hidden = true;
@@ -82,7 +92,8 @@ if (!isValidFriendCode(code)) {
 
   async function copy(install: boolean) {
     if (primary.disabled || retry.disabled) return;
-    primary.disabled = retry.disabled = true;
+    primary.disabled = retry.disabled = switchStore.disabled = true;
+    if (install) store.hidden = true;
     manual.hidden = true; status.textContent = '';
     field.value = device === 'desktop' ? friendPublicInviteUrl(code) : friendInstallHandoff(code);
     try {
@@ -90,22 +101,23 @@ if (!isValidFriendCode(code)) {
         await copyFriendInviteAndInstall(code, async url => {
           field.value = url;
           await navigator.clipboard.writeText(url);
-        }, () => {
+        }, destination => {
           // A fresh tap avoids Safari blocking navigation after asynchronous copy.
+          store.href = destination;
           primary.hidden = true; store.hidden = false;
-        });
+        }, Date.now(), installChannel);
       } else {
         await navigator.clipboard.writeText(field.value);
       }
       status.textContent = t('Invitation copied');
     } catch {
       manual.hidden = false;
-      error.textContent = t(device === 'ios'
+      error.textContent = t(device === 'ios' && installChannel === 'app-store'
         ? 'Could not copy your invite. Copy the link below, then continue to the App Store.'
         : 'Could not complete that action. Try again.');
       if (device === 'ios') store.hidden = false;
     } finally {
-      primary.disabled = retry.disabled = false;
+      primary.disabled = retry.disabled = switchStore.disabled = false;
     }
   }
   retry.addEventListener('click', () => void copy(device === 'ios'));
@@ -115,6 +127,21 @@ if (!isValidFriendCode(code)) {
     android.addEventListener('click', () => { android.href = friendAndroidContinueUrl(code); });
     primary.replaceWith(android);
   } else {
+    if (device === 'ios') {
+      try {
+        if (localStorage.getItem(installChannelKey) === 'testflight') {
+          installChannel = 'testflight';
+        }
+      } catch { /* The install choice still works without storage. */ }
+      showInstallChannel();
+      store.after(switchStore);
+      switchStore.addEventListener('click', () => {
+        installChannel = installChannel === 'app-store' ? 'testflight' : 'app-store';
+        try { localStorage.setItem(installChannelKey, installChannel); } catch { /* Optional. */ }
+        showInstallChannel();
+        void copy(true);
+      });
+    }
     primary.addEventListener('click', () => void copy(device === 'ios'));
   }
 }

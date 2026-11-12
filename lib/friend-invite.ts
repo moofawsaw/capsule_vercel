@@ -67,14 +67,21 @@ export function friendInviteDevice(device: {
   return "desktop";
 }
 
+export type FriendIosInstallChannel = 'app-store' | 'testflight';
+
+export function friendIosInstallUrl(channel: FriendIosInstallChannel): string {
+  return channel === 'testflight'
+    ? 'itms-beta://testflight.apple.com/v1/app/6758107085'
+    : downloadConfig.stores.apple.href;
+}
+
 /** Copy in the user's tap, then expose a fresh store link for Safari. */
 export async function copyFriendInviteAndInstall(code: string,
   write: (text: string) => Promise<void>, prepare: (url: string) => void,
-  now = Date.now()): Promise<void> {
+  now = Date.now(), channel: FriendIosInstallChannel = 'app-store'): Promise<void> {
   await write(friendInstallHandoff(code, now));
-  prepare(downloadConfig.stores.apple.href);
+  prepare(friendIosInstallUrl(channel));
 }
-export const iosStoreUrl = downloadConfig.stores.apple.href;
 
 // Shared invitation copy from the Flutter catalogs. All 20 supported locales;
 // no network translation and no English placeholders in non-English catalogs.
