@@ -1,5 +1,5 @@
 import qrcode from "qrcode-generator";
-const downloadConfig = { stores: { apple: {href: "https://apps.apple.com/app/id6758107085"}, google: {href: "https://play.google.com/store/apps/details?id=com.capsule.app"} } };
+const playStoreUrl = "https://play.google.com/store/apps/details?id=com.capsule.app";
 const siteUrl = (path: string) => `https://share.capapp.co${path}`;
 
 export const FRIEND_CODE_LENGTHS = [8, 10, 12] as const;
@@ -30,7 +30,7 @@ export function friendInstallHandoff(code: string, now = Date.now()): string {
 export function friendPlayStoreUrl(code: string, now = Date.now()): string {
   if (!isValidFriendCode(code) || !Number.isFinite(now) || now <= 0)
     throw new RangeError("Invalid invitation handoff");
-  const url = new URL(downloadConfig.stores.google.href);
+  const url = new URL(playStoreUrl);
   url.searchParams.set(
     "referrer",
     new URLSearchParams({
@@ -68,7 +68,7 @@ export function friendInviteDevice(device: {
 }
 
 export function friendIosInstallUrl(): string {
-  return downloadConfig.stores.apple.href;
+  return "itms-beta://testflight.apple.com/v1/app/6758107085";
 }
 
 /** Navigate only after copying, preserving the tap for synchronous clipboard writes. */
@@ -94,12 +94,12 @@ export const friendInviteCopy = {
       "Your invite comes with you from Google Play. Open Capsule after installing to continue.",
     "If your invite does not appear, reopen this link after signing in.":
       "If your invite does not appear, reopen this link after signing in.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Could not copy your invite. Copy the link below, then continue to the App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Could not copy your invite. Copy the link below, then continue to TestFlight.",
     "Invitation link": "Invitation link",
     "Copy invite link": "Copy invite link",
     "Invitation copied": "Invitation copied",
-    "Continue to App Store": "Continue to App Store",
+    "Continue to TestFlight": "Continue to TestFlight",
     "This invitation link does not look right": "This invitation link does not look right",
     "Ask your friend to resend the full invitation link.":
       "Ask your friend to resend the full invitation link.",
@@ -121,12 +121,12 @@ export const friendInviteCopy = {
       "邀请会通过 Google Play 保留下来。安装后打开 Capsule 即可继续。",
     "If your invite does not appear, reopen this link after signing in.":
       "如果没有显示邀请，请在登录后重新打开此链接。",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "无法复制邀请。请复制下方链接，然后前往 App Store。",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "无法复制邀请。请复制下方链接，然后前往 TestFlight。",
     "Invitation link": "邀请链接",
     "Copy invite link": "复制邀请链接",
     "Invitation copied": "邀请已复制",
-    "Continue to App Store": "前往 App Store",
+    "Continue to TestFlight": "前往 TestFlight",
     "This invitation link does not look right": "此邀请链接似乎有误",
     "Ask your friend to resend the full invitation link.": "请朋友重新发送完整的邀请链接。",
     "Go home": "返回首页",
@@ -147,12 +147,12 @@ export const friendInviteCopy = {
       "Votre invitation vous accompagne depuis Google Play. Ouvrez Capsule après l’installation pour continuer.",
     "If your invite does not appear, reopen this link after signing in.":
       "Si votre invitation n’apparaît pas, rouvrez ce lien après la connexion.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Impossible de copier votre invitation. Copiez le lien ci-dessous, puis continuez vers l’App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Impossible de copier votre invitation. Copiez le lien ci-dessous, puis continuez vers TestFlight.",
     "Invitation link": "Lien d’invitation",
     "Copy invite link": "Copier le lien d’invitation",
     "Invitation copied": "Invitation copiée",
-    "Continue to App Store": "Continuer vers l’App Store",
+    "Continue to TestFlight": "Continuer vers TestFlight",
     "This invitation link does not look right": "Ce lien d’invitation semble incorrect",
     "Ask your friend to resend the full invitation link.":
       "Demandez à votre ami de renvoyer le lien d’invitation complet.",
@@ -176,12 +176,12 @@ export const friendInviteCopy = {
       "Deine Einladung wird von Google Play übernommen. Öffne Capsule nach der Installation, um fortzufahren.",
     "If your invite does not appear, reopen this link after signing in.":
       "Wenn deine Einladung nicht erscheint, öffne diesen Link nach der Anmeldung erneut.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Deine Einladung konnte nicht kopiert werden. Kopiere den Link unten und gehe dann zum App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Deine Einladung konnte nicht kopiert werden. Kopiere den Link unten und gehe dann zu TestFlight.",
     "Invitation link": "Einladungslink",
     "Copy invite link": "Einladungslink kopieren",
     "Invitation copied": "Einladung kopiert",
-    "Continue to App Store": "Weiter zum App Store",
+    "Continue to TestFlight": "Weiter zu TestFlight",
     "This invitation link does not look right": "Dieser Einladungslink scheint fehlerhaft zu sein",
     "Ask your friend to resend the full invitation link.":
       "Bitte deinen Freund, den vollständigen Einladungslink erneut zu senden.",
@@ -205,12 +205,12 @@ export const friendInviteCopy = {
       "Il tuo invito viene conservato da Google Play. Apri Capsule dopo l’installazione per continuare.",
     "If your invite does not appear, reopen this link after signing in.":
       "Se il tuo invito non compare, riapri questo link dopo aver effettuato l’accesso.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Impossibile copiare il tuo invito. Copia il link qui sotto, poi continua su App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Impossibile copiare il tuo invito. Copia il link qui sotto, poi continua su TestFlight.",
     "Invitation link": "Link di invito",
     "Copy invite link": "Copia link di invito",
     "Invitation copied": "Invito copiato",
-    "Continue to App Store": "Continua su App Store",
+    "Continue to TestFlight": "Continua su TestFlight",
     "This invitation link does not look right": "Questo link di invito non sembra corretto",
     "Ask your friend to resend the full invitation link.":
       "Chiedi al tuo amico di inviare di nuovo il link di invito completo.",
@@ -233,12 +233,12 @@ export const friendInviteCopy = {
       "Google Playから招待が引き継がれます。インストール後にCapsuleを開いて続けてください。",
     "If your invite does not appear, reopen this link after signing in.":
       "招待が表示されない場合は、サインイン後にこのリンクをもう一度開いてください。",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "招待をコピーできませんでした。下のリンクをコピーしてからApp Storeへ進んでください。",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "招待をコピーできませんでした。下のリンクをコピーしてからTestFlightへ進んでください。",
     "Invitation link": "招待リンク",
     "Copy invite link": "招待リンクをコピー",
     "Invitation copied": "招待をコピーしました",
-    "Continue to App Store": "App Storeへ進む",
+    "Continue to TestFlight": "TestFlightへ進む",
     "This invitation link does not look right": "この招待リンクは正しくないようです",
     "Ask your friend to resend the full invitation link.":
       "完全な招待リンクをもう一度送るよう友だちに依頼してください。",
@@ -262,12 +262,12 @@ export const friendInviteCopy = {
       "Seu convite é mantido pelo Google Play. Abra o Capsule após instalar para continuar.",
     "If your invite does not appear, reopen this link after signing in.":
       "Se o convite não aparecer, reabra este link depois de entrar na conta.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Não foi possível copiar seu convite. Copie o link abaixo e continue para a App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Não foi possível copiar seu convite. Copie o link abaixo e continue no TestFlight.",
     "Invitation link": "Link do convite",
     "Copy invite link": "Copiar link do convite",
     "Invitation copied": "Convite copiado",
-    "Continue to App Store": "Continuar para a App Store",
+    "Continue to TestFlight": "Continuar no TestFlight",
     "This invitation link does not look right": "Este link de convite não parece correto",
     "Ask your friend to resend the full invitation link.":
       "Peça ao seu amigo para reenviar o link completo do convite.",
@@ -291,12 +291,12 @@ export const friendInviteCopy = {
       "Приглашение сохранится при переходе из Google Play. После установки откройте Capsule, чтобы продолжить.",
     "If your invite does not appear, reopen this link after signing in.":
       "Если приглашение не появилось, снова откройте эту ссылку после входа.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Не удалось скопировать приглашение. Скопируйте ссылку ниже и перейдите в App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Не удалось скопировать приглашение. Скопируйте ссылку ниже и перейдите в TestFlight.",
     "Invitation link": "Ссылка-приглашение",
     "Copy invite link": "Скопировать ссылку-приглашение",
     "Invitation copied": "Приглашение скопировано",
-    "Continue to App Store": "Перейти в App Store",
+    "Continue to TestFlight": "Перейти в TestFlight",
     "This invitation link does not look right": "Эта ссылка-приглашение выглядит неверной",
     "Ask your friend to resend the full invitation link.":
       "Попросите друга повторно отправить полную ссылку-приглашение.",
@@ -320,12 +320,12 @@ export const friendInviteCopy = {
       "Tu invitación se conserva desde Google Play. Abre Capsule después de instalar para continuar.",
     "If your invite does not appear, reopen this link after signing in.":
       "Si tu invitación no aparece, vuelve a abrir este enlace después de iniciar sesión.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "No se pudo copiar tu invitación. Copia el enlace de abajo y continúa a App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "No se pudo copiar tu invitación. Copia el enlace de abajo y continúa en TestFlight.",
     "Invitation link": "Enlace de invitación",
     "Copy invite link": "Copiar enlace de invitación",
     "Invitation copied": "Invitación copiada",
-    "Continue to App Store": "Continuar a App Store",
+    "Continue to TestFlight": "Continuar en TestFlight",
     "This invitation link does not look right": "Este enlace de invitación parece incorrecto",
     "Ask your friend to resend the full invitation link.":
       "Pide a tu amigo que vuelva a enviar el enlace de invitación completo.",
@@ -349,12 +349,12 @@ export const friendInviteCopy = {
       "Je uitnodiging wordt meegenomen vanuit Google Play. Open Capsule na de installatie om verder te gaan.",
     "If your invite does not appear, reopen this link after signing in.":
       "Verschijnt je uitnodiging niet? Open deze link opnieuw nadat je bent ingelogd.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Je uitnodiging kon niet worden gekopieerd. Kopieer de link hieronder en ga verder naar de App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Je uitnodiging kon niet worden gekopieerd. Kopieer de link hieronder en ga verder naar TestFlight.",
     "Invitation link": "Uitnodigingslink",
     "Copy invite link": "Uitnodigingslink kopiëren",
     "Invitation copied": "Uitnodiging gekopieerd",
-    "Continue to App Store": "Verder naar de App Store",
+    "Continue to TestFlight": "Verder naar TestFlight",
     "This invitation link does not look right": "Deze uitnodigingslink lijkt niet te kloppen",
     "Ask your friend to resend the full invitation link.":
       "Vraag je vriend om de volledige uitnodigingslink opnieuw te sturen.",
@@ -377,12 +377,12 @@ export const friendInviteCopy = {
       "ستنتقل دعوتك معك من Google Play. افتح Capsule بعد التثبيت للمتابعة.",
     "If your invite does not appear, reopen this link after signing in.":
       "إذا لم تظهر دعوتك، فأعد فتح هذا الرابط بعد تسجيل الدخول.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "تعذّر نسخ دعوتك. انسخ الرابط أدناه، ثم انتقل إلى App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "تعذّر نسخ دعوتك. انسخ الرابط أدناه، ثم انتقل إلى TestFlight.",
     "Invitation link": "رابط الدعوة",
     "Copy invite link": "نسخ رابط الدعوة",
     "Invitation copied": "تم نسخ الدعوة",
-    "Continue to App Store": "المتابعة إلى App Store",
+    "Continue to TestFlight": "المتابعة إلى TestFlight",
     "This invitation link does not look right": "يبدو أن رابط الدعوة غير صحيح",
     "Ask your friend to resend the full invitation link.":
       "اطلب من صديقك إعادة إرسال رابط الدعوة الكامل.",
@@ -404,12 +404,12 @@ export const friendInviteCopy = {
       "آپ کی دعوت Google Play سے آپ کے ساتھ آتی ہے۔ انسٹال کرنے کے بعد جاری رکھنے کے لیے Capsule کھولیں۔",
     "If your invite does not appear, reopen this link after signing in.":
       "اگر آپ کی دعوت نظر نہ آئے تو سائن ان کرنے کے بعد یہ لنک دوبارہ کھولیں۔",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "آپ کی دعوت کاپی نہیں ہو سکی۔ نیچے دیا گیا لنک کاپی کریں، پھر App Store پر جائیں۔",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "آپ کی دعوت کاپی نہیں ہو سکی۔ نیچے دیا گیا لنک کاپی کریں، پھر TestFlight پر جائیں۔",
     "Invitation link": "دعوت کا لنک",
     "Copy invite link": "دعوت کا لنک کاپی کریں",
     "Invitation copied": "دعوت کاپی ہو گئی",
-    "Continue to App Store": "App Store پر جائیں",
+    "Continue to TestFlight": "TestFlight پر جائیں",
     "This invitation link does not look right": "دعوت کا یہ لنک درست نہیں لگتا",
     "Ask your friend to resend the full invitation link.":
       "اپنے دوست سے دعوت کا مکمل لنک دوبارہ بھیجنے کو کہیں۔",
@@ -432,12 +432,12 @@ export const friendInviteCopy = {
       "ਤੁਹਾਡਾ ਸੱਦਾ Google Play ਤੋਂ ਤੁਹਾਡੇ ਨਾਲ ਆਉਂਦਾ ਹੈ। ਇੰਸਟਾਲ ਕਰਨ ਤੋਂ ਬਾਅਦ ਜਾਰੀ ਰੱਖਣ ਲਈ Capsule ਖੋਲ੍ਹੋ।",
     "If your invite does not appear, reopen this link after signing in.":
       "ਜੇ ਤੁਹਾਡਾ ਸੱਦਾ ਨਹੀਂ ਦਿਸਦਾ, ਤਾਂ ਸਾਈਨ ਇਨ ਕਰਨ ਤੋਂ ਬਾਅਦ ਇਹ ਲਿੰਕ ਮੁੜ ਖੋਲ੍ਹੋ।",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "ਤੁਹਾਡਾ ਸੱਦਾ ਕਾਪੀ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਹੇਠਾਂ ਦਿੱਤਾ ਲਿੰਕ ਕਾਪੀ ਕਰੋ, ਫਿਰ App Store ਉੱਤੇ ਜਾਓ।",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "ਤੁਹਾਡਾ ਸੱਦਾ ਕਾਪੀ ਨਹੀਂ ਹੋ ਸਕਿਆ। ਹੇਠਾਂ ਦਿੱਤਾ ਲਿੰਕ ਕਾਪੀ ਕਰੋ, ਫਿਰ TestFlight ਉੱਤੇ ਜਾਓ।",
     "Invitation link": "ਸੱਦੇ ਦਾ ਲਿੰਕ",
     "Copy invite link": "ਸੱਦੇ ਦਾ ਲਿੰਕ ਕਾਪੀ ਕਰੋ",
     "Invitation copied": "ਸੱਦਾ ਕਾਪੀ ਹੋ ਗਿਆ",
-    "Continue to App Store": "App Store ਉੱਤੇ ਜਾਓ",
+    "Continue to TestFlight": "TestFlight ਉੱਤੇ ਜਾਓ",
     "This invitation link does not look right": "ਇਹ ਸੱਦਾ ਲਿੰਕ ਸਹੀ ਨਹੀਂ ਲੱਗਦਾ",
     "Ask your friend to resend the full invitation link.":
       "ਆਪਣੇ ਦੋਸਤ ਨੂੰ ਸੱਦੇ ਦਾ ਪੂਰਾ ਲਿੰਕ ਮੁੜ ਭੇਜਣ ਲਈ ਕਹੋ।",
@@ -459,12 +459,12 @@ export const friendInviteCopy = {
       "आपका निमंत्रण Google Play से आपके साथ आता है। इंस्टॉल करने के बाद जारी रखने के लिए Capsule खोलें।",
     "If your invite does not appear, reopen this link after signing in.":
       "अगर आपका निमंत्रण नहीं दिखता है, तो साइन इन करने के बाद यह लिंक दोबारा खोलें।",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "आपका निमंत्रण कॉपी नहीं हो सका। नीचे दिया लिंक कॉपी करें, फिर App Store पर जाएँ।",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "आपका निमंत्रण कॉपी नहीं हो सका। नीचे दिया लिंक कॉपी करें, फिर TestFlight पर जाएँ।",
     "Invitation link": "निमंत्रण लिंक",
     "Copy invite link": "निमंत्रण लिंक कॉपी करें",
     "Invitation copied": "निमंत्रण कॉपी हो गया",
-    "Continue to App Store": "App Store पर जाएँ",
+    "Continue to TestFlight": "TestFlight पर जाएँ",
     "This invitation link does not look right": "यह निमंत्रण लिंक सही नहीं लगता",
     "Ask your friend to resend the full invitation link.":
       "अपने दोस्त से पूरा निमंत्रण लिंक दोबारा भेजने को कहें।",
@@ -487,12 +487,12 @@ export const friendInviteCopy = {
       "Google Play থেকে আপনার আমন্ত্রণ সংরক্ষিত থাকবে। ইনস্টল করার পরে চালিয়ে যেতে Capsule খুলুন।",
     "If your invite does not appear, reopen this link after signing in.":
       "আমন্ত্রণটি দেখা না গেলে সাইন ইন করার পরে এই লিঙ্কটি আবার খুলুন।",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "আমন্ত্রণ কপি করা যায়নি। নিচের লিঙ্কটি কপি করে App Store-এ যান।",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "আমন্ত্রণ কপি করা যায়নি। নিচের লিঙ্কটি কপি করে TestFlight-এ যান।",
     "Invitation link": "আমন্ত্রণের লিঙ্ক",
     "Copy invite link": "আমন্ত্রণের লিঙ্ক কপি করুন",
     "Invitation copied": "আমন্ত্রণ কপি হয়েছে",
-    "Continue to App Store": "App Store-এ যান",
+    "Continue to TestFlight": "TestFlight-এ যান",
     "This invitation link does not look right": "আমন্ত্রণের এই লিঙ্কটি সঠিক মনে হচ্ছে না",
     "Ask your friend to resend the full invitation link.":
       "আপনার বন্ধুকে সম্পূর্ণ আমন্ত্রণের লিঙ্কটি আবার পাঠাতে বলুন।",
@@ -515,12 +515,12 @@ export const friendInviteCopy = {
       "Google Play에서 초대가 유지됩니다. 설치 후 Capsule를 열어 계속하세요.",
     "If your invite does not appear, reopen this link after signing in.":
       "초대가 표시되지 않으면 로그인한 뒤 이 링크를 다시 여세요.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "초대를 복사하지 못했어요. 아래 링크를 복사한 다음 App Store로 이동하세요.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "초대를 복사하지 못했어요. 아래 링크를 복사한 다음 TestFlight로 이동하세요.",
     "Invitation link": "초대 링크",
     "Copy invite link": "초대 링크 복사",
     "Invitation copied": "초대를 복사했어요",
-    "Continue to App Store": "App Store로 이동",
+    "Continue to TestFlight": "TestFlight로 이동",
     "This invitation link does not look right": "초대 링크가 올바르지 않은 것 같아요",
     "Ask your friend to resend the full invitation link.":
       "친구에게 전체 초대 링크를 다시 보내 달라고 요청하세요.",
@@ -542,12 +542,12 @@ export const friendInviteCopy = {
       "Davetin Google Play üzerinden korunur. Yükledikten sonra devam etmek için Capsule’i aç.",
     "If your invite does not appear, reopen this link after signing in.":
       "Davetin görünmezse giriş yaptıktan sonra bu bağlantıyı yeniden aç.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Davetin kopyalanamadı. Aşağıdaki bağlantıyı kopyala, ardından App Store’a geç.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Davetin kopyalanamadı. Aşağıdaki bağlantıyı kopyala, ardından TestFlight’a geç.",
     "Invitation link": "Davet bağlantısı",
     "Copy invite link": "Davet bağlantısını kopyala",
     "Invitation copied": "Davet kopyalandı",
-    "Continue to App Store": "App Store’a devam et",
+    "Continue to TestFlight": "TestFlight’a devam et",
     "This invitation link does not look right": "Bu davet bağlantısı doğru görünmüyor",
     "Ask your friend to resend the full invitation link.":
       "Arkadaşından davet bağlantısının tamamını yeniden göndermesini iste.",
@@ -569,12 +569,12 @@ export const friendInviteCopy = {
       "Undangan Anda tetap tersimpan melalui Google Play. Buka Capsule setelah menginstal untuk melanjutkan.",
     "If your invite does not appear, reopen this link after signing in.":
       "Jika undangan tidak muncul, buka kembali tautan ini setelah masuk.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Undangan tidak dapat disalin. Salin tautan di bawah, lalu lanjutkan ke App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Undangan tidak dapat disalin. Salin tautan di bawah, lalu lanjutkan ke TestFlight.",
     "Invitation link": "Tautan undangan",
     "Copy invite link": "Salin tautan undangan",
     "Invitation copied": "Undangan disalin",
-    "Continue to App Store": "Lanjutkan ke App Store",
+    "Continue to TestFlight": "Lanjutkan ke TestFlight",
     "This invitation link does not look right": "Tautan undangan ini tampaknya tidak benar",
     "Ask your friend to resend the full invitation link.":
       "Minta teman Anda mengirim ulang tautan undangan lengkap.",
@@ -598,12 +598,12 @@ export const friendInviteCopy = {
       "Lời mời được giữ lại qua Google Play. Mở Capsule sau khi cài đặt để tiếp tục.",
     "If your invite does not appear, reopen this link after signing in.":
       "Nếu không thấy lời mời, hãy mở lại liên kết này sau khi đăng nhập.",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "Không thể sao chép lời mời. Sao chép liên kết bên dưới rồi tiếp tục đến App Store.",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "Không thể sao chép lời mời. Sao chép liên kết bên dưới rồi tiếp tục đến TestFlight.",
     "Invitation link": "Liên kết lời mời",
     "Copy invite link": "Sao chép liên kết lời mời",
     "Invitation copied": "Đã sao chép lời mời",
-    "Continue to App Store": "Tiếp tục đến App Store",
+    "Continue to TestFlight": "Tiếp tục đến TestFlight",
     "This invitation link does not look right": "Liên kết lời mời này có vẻ không đúng",
     "Ask your friend to resend the full invitation link.":
       "Nhờ bạn bè gửi lại liên kết lời mời đầy đủ.",
@@ -625,12 +625,12 @@ export const friendInviteCopy = {
       "คำเชิญจะถูกเก็บไว้ผ่าน Google Play เปิด Capsule หลังติดตั้งเพื่อดำเนินการต่อ",
     "If your invite does not appear, reopen this link after signing in.":
       "หากไม่เห็นคำเชิญ ให้เปิดลิงก์นี้อีกครั้งหลังลงชื่อเข้าใช้",
-    "Could not copy your invite. Copy the link below, then continue to the App Store.":
-      "คัดลอกคำเชิญไม่ได้ โปรดคัดลอกลิงก์ด้านล่างแล้วไปที่ App Store",
+    "Could not copy your invite. Copy the link below, then continue to TestFlight.":
+      "คัดลอกคำเชิญไม่ได้ โปรดคัดลอกลิงก์ด้านล่างแล้วไปที่ TestFlight",
     "Invitation link": "ลิงก์คำเชิญ",
     "Copy invite link": "คัดลอกลิงก์คำเชิญ",
     "Invitation copied": "คัดลอกคำเชิญแล้ว",
-    "Continue to App Store": "ไปที่ App Store",
+    "Continue to TestFlight": "ไปที่ TestFlight",
     "This invitation link does not look right": "ลิงก์คำเชิญนี้ดูไม่ถูกต้อง",
     "Ask your friend to resend the full invitation link.":
       "ขอให้เพื่อนส่งลิงก์คำเชิญฉบับเต็มอีกครั้ง",

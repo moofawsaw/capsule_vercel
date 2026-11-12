@@ -1,3 +1,4 @@
+import { isValidFriendCode } from '../../../lib/friend-invite';
 import { renderFriendInvitePage } from '../../../lib/friend-invite-page';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
@@ -251,6 +252,7 @@ async function fetchFriendPreview(params: {
         Accept: 'application/json',
       },
       body: JSON.stringify({ p_friend_code: params.friendCode }),
+      signal: AbortSignal.timeout(2000),
     });
 
     if (!r.ok) return null;
@@ -296,7 +298,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (t === 'friend') {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 'private, no-store');
-    return res.status(200).send(renderFriendInvitePage(c, req.query.name));
+    const preview = isValidFriendCode(c) ? await fetchFriendPreview({ friendCode: c }) : null;
+    const name = preview?.displayName ?? (preview?.username ? `@${preview.username}` : req.query.name);
+    const avatarUrl = resolveAvatarUrl({
+      supabaseUrl: getSupabaseEnv()?.url ?? null,
+      raw: preview?.avatarUrl,
+    });
+    return res.status(200).send(renderFriendInvitePage(c, name, avatarUrl));
   }
 
   const isMemory = t === 'memory';

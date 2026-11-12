@@ -59,6 +59,14 @@ if (!isValidFriendCode(code)) {
   const portrait = element('div', name ? Array.from(name)[0] : '+');
   portrait.className = 'portrait';
   portrait.setAttribute('aria-hidden', 'true');
+  if (config.avatarUrl) {
+    const photo = element('img');
+    photo.alt = '';
+    photo.referrerPolicy = 'no-referrer';
+    photo.addEventListener('error', () => photo.remove(), { once: true });
+    photo.src = config.avatarUrl;
+    portrait.append(photo);
+  }
   content.append(portrait);
   message('p', name ? '{name} invited you' : 'Friend invitation', 'eyebrow');
   const heading = message('h1', name ? 'Join {name} on Capsule' : 'Join your friend on Capsule');
@@ -88,7 +96,7 @@ if (!isValidFriendCode(code)) {
   }
 
   const primary = element('button', t(device === 'desktop' ? 'Copy invite link' : 'Continue'));
-  const store = element('a', t('Continue to App Store'));
+  const store = element('a', t('Continue to TestFlight'));
   store.className = 'button'; store.hidden = true;
   store.href = friendIosInstallUrl();
   const status = element('p'); status.setAttribute('role', 'status');
@@ -126,7 +134,7 @@ if (!isValidFriendCode(code)) {
     } catch {
       manual.hidden = false;
       error.textContent = t(device === 'ios'
-        ? 'Could not copy your invite. Copy the link below, then continue to the App Store.'
+        ? 'Could not copy your invite. Copy the link below, then continue to TestFlight.'
         : 'Could not complete that action. Try again.');
       if (device === 'ios') store.hidden = false;
     } finally {
