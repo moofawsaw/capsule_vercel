@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
+import handleFriendInvitePage from '../api/friend-invite';
 import handleInvite from '../api/join/[type]/[code]';
 import {
   copyFriendInviteAndInstall, friendAndroidContinueUrl, friendInstallHandoff,
@@ -86,7 +87,7 @@ test('page safely embeds display content and serves Capsule branding in both the
   assert.ok(!html.includes('apple-itunes-app'));
 });
 
-test('friend route resolves the inviter and avatar from the exact friend code', async t => {
+test('the shared friend link redirects browser requests outside the app-linked path and resolves the same inviter', async t => {
   const env = { SUPABASE_URL: 'https://capsule.test', SUPABASE_SERVICE_ROLE_KEY: 'test-key' };
   const previous = { SUPABASE_URL: process.env.SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY };
   Object.assign(process.env, env);
@@ -103,22 +104,35 @@ test('friend route resolves the inviter and avatar from the exact friend code', 
     bio: 'Unused profile field',
   }]));
 
+  let location = '';
+  const sharedLinkResponse = {
+    setHeader() {},
+    redirect(status: number, path: string) { assert.equal(status, 302); location = path; },
+  } as unknown as VercelResponse;
+  await handleInvite({ query: {
+    type: 'friend', code: 'AbCd234567', name: 'Query & name',
+  } } as unknown as VercelRequest, sharedLinkResponse);
+  assert.equal(lookup.mock.callCount(), 0);
+  assert.equal(location, '/invite/friend?code=AbCd234567&name=Query+%26+name');
+
   let html = '';
   const res = {
     setHeader() {},
     status(status: number) { assert.equal(status, 200); return this; },
     send(body: string) { html = body; },
   } as unknown as VercelResponse;
-  const req = { query: { type: 'friend', code: 'AbCd234567', name: 'Query name' } } as unknown as VercelRequest;
-  await handleInvite(req, res);
+  const browserUrl = new URL(location, 'https://share.capapp.co');
+  const req = { query: Object.fromEntries(browserUrl.searchParams) } as unknown as VercelRequest;
+  await handleFriendInvitePage(req, res);
   assert.equal(lookup.mock.callCount(), 1);
   const [url, init] = lookup.mock.calls[0]!.arguments as unknown as [string, RequestInit];
   assert.equal(url, 'https://capsule.test/rest/v1/rpc/get_user_preview_by_friend_code');
   assert.deepEqual(JSON.parse(init.body as string), { p_friend_code: 'AbCd234567' });
   assert.ok(html.includes('"name":"DB name","avatarUrl":"https://capsule.test/storage/v1/object/public/avatars/test/photo.png"'));
-  assert.ok(!html.includes('Query name') && !html.includes('Unused profile field'));
+  assert.ok(!html.includes('Query') && !html.includes('Unused profile field'));
+  assert.ok(!html.includes('apple-itunes-app'));
 
   req.query.code = 'bad';
-  await handleInvite(req, res);
+  await handleFriendInvitePage(req, res);
   assert.equal(lookup.mock.callCount(), 1);
 });

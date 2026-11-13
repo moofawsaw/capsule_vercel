@@ -1,4 +1,4 @@
-import { isValidFriendCode } from '../../../lib/friend-invite';
+import { friendInviteName, isValidFriendCode } from '../../../lib/friend-invite';
 import { renderFriendInvitePage } from '../../../lib/friend-invite-page';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
@@ -285,6 +285,19 @@ async function fetchFriendPreview(params: {
   }
 }
 
+export async function serveFriendInvitePage(req: VercelRequest, res: VercelResponse) {
+  const code = typeof req.query.code === 'string' ? req.query.code.trim() : '';
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'private, no-store');
+  const preview = isValidFriendCode(code) ? await fetchFriendPreview({ friendCode: code }) : null;
+  const name = preview?.displayName ?? (preview?.username ? `@${preview.username}` : req.query.name);
+  const avatarUrl = resolveAvatarUrl({
+    supabaseUrl: getSupabaseEnv()?.url ?? null,
+    raw: preview?.avatarUrl,
+  });
+  return res.status(200).send(renderFriendInvitePage(code, name, avatarUrl));
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const { type, code } = req.query;
 
@@ -296,15 +309,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const c = String(code).trim();
 
   if (t === 'friend') {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    // Keep the shared link app-linked, but render the install page outside /join/*
+    // so Safari does not offer its own app action on the landing page.
+    const query = new URLSearchParams({ code: c });
+    const name = friendInviteName(req.query.name);
+    if (name) query.set('name', name);
     res.setHeader('Cache-Control', 'private, no-store');
-    const preview = isValidFriendCode(c) ? await fetchFriendPreview({ friendCode: c }) : null;
-    const name = preview?.displayName ?? (preview?.username ? `@${preview.username}` : req.query.name);
-    const avatarUrl = resolveAvatarUrl({
-      supabaseUrl: getSupabaseEnv()?.url ?? null,
-      raw: preview?.avatarUrl,
-    });
-    return res.status(200).send(renderFriendInvitePage(c, name, avatarUrl));
+    return res.redirect(302, `/invite/friend?${query}`);
   }
 
   const isMemory = t === 'memory';
